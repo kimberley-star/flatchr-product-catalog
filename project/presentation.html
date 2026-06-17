@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Présentation Commerciale · Flatchr 2026</title>
+<link rel="icon" href="assets/logo-flatchr-paul.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="design-system.css" />
+<link rel="stylesheet" href="catalog.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" />
+<style>
+  body { margin: 0; background: var(--color-secondary-600); }
+  deck-stage { --slide-bg: #fff; }
+  .slide { box-sizing: border-box; width: 100%; height: 100%; padding: 80px 96px; display: flex; flex-direction: column; background: #fff; overflow: hidden; position: relative; }
+  .slide.dark { background: linear-gradient(135deg, hsla(212, 37%, 27%, 1) 0%, hsla(212, 37%, 15%, 1) 100%); color: #fff; }
+  .slide.cyan { background: linear-gradient(135deg, var(--color-primary-400) 0%, var(--color-primary-600) 100%); color: #fff; }
+  .slide-eyebrow { font-size: 16px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-primary-500); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .slide-eyebrow::before { content: ''; width: 32px; height: 3px; background: var(--color-primary-400); display: inline-block; }
+  .slide.dark .slide-eyebrow, .slide.cyan .slide-eyebrow { color: var(--color-primary-300); }
+  .slide.dark .slide-eyebrow::before, .slide.cyan .slide-eyebrow::before { background: var(--color-primary-300); }
+  .slide.cyan .slide-eyebrow { color: #fff; }
+  .slide.cyan .slide-eyebrow::before { background: #fff; }
+  .slide h1 { font-family: var(--font-display); font-size: 72px; font-weight: 700; margin: 0 0 32px; line-height: 1.05; letter-spacing: -0.02em; color: var(--color-secondary-500); }
+  .slide.dark h1, .slide.cyan h1 { color: #fff; }
+  .slide h2 { font-family: var(--font-display); font-size: 52px; font-weight: 700; margin: 0 0 28px; line-height: 1.1; letter-spacing: -0.01em; color: var(--color-secondary-500); }
+  .slide.dark h2, .slide.cyan h2 { color: #fff; }
+  .slide .lead { font-size: 24px; color: var(--color-neutral-800); line-height: 1.45; max-width: 1100px; font-weight: 400; }
+  .slide.dark .lead, .slide.cyan .lead { color: hsla(0,0%,100%,0.85); }
+  .slide-footer { position: absolute; bottom: 32px; left: 96px; right: 96px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--color-neutral-700); letter-spacing: 0.05em; }
+  .slide.dark .slide-footer, .slide.cyan .slide-footer { color: hsla(0,0%,100%,0.4); }
+  .slide-footer .right { display: flex; align-items: center; gap: 12px; }
+  .slide-logo { height: 32px; }
+  .slide.dark .slide-logo, .slide.cyan .slide-logo { filter: brightness(0) invert(1); }
+
+  /* Slide 1 - title */
+  .hero-slide { padding: 96px; display: flex; flex-direction: column; justify-content: center; }
+  .hero-slide .paul-wrap { position: absolute; right: 80px; top: 80px; width: 320px; opacity: 0.92; }
+  .hero-slide h1 { font-size: 96px; max-width: 1100px; }
+  .hero-slide .subtitle { font-size: 28px; color: hsla(0,0%,100%,0.7); margin-top: 24px; max-width: 900px; font-weight: 300; }
+  .hero-slide .meta { margin-top: 64px; display: flex; gap: 48px; }
+  .hero-slide .meta-item .key { font-size: 13px; color: hsla(0,0%,100%,0.5); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+  .hero-slide .meta-item .val { font-family: var(--font-display); font-size: 22px; color: #fff; font-weight: 600; margin-top: 6px; }
+
+  /* Two-column slide */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; flex: 1; align-items: flex-start; margin-top: 24px; }
+  .cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; flex: 1; margin-top: 32px; }
+
+  /* Big feature card */
+  .feat-card { background: #fff; border: 1px solid var(--color-neutral-300); border-radius: 16px; padding: 32px; box-shadow: var(--shadow-sm); }
+  .slide.dark .feat-card { background: hsla(0,0%,100%,0.06); border-color: hsla(0,0%,100%,0.12); backdrop-filter: blur(8px); }
+  .feat-card .ico-wrap { width: 56px; height: 56px; border-radius: 12px; background: var(--color-primary-200); color: var(--color-primary-500); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+  .feat-card .ico-wrap .ico { font-size: 28px; }
+  .slide.dark .feat-card .ico-wrap { background: hsla(188, 99%, 39%, 0.2); color: var(--color-primary-300); }
+  .feat-card h3 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 0 0 10px; color: var(--color-secondary-500); }
+  .slide.dark .feat-card h3 { color: #fff; }
+  .feat-card p { font-size: 15px; color: var(--color-neutral-800); line-height: 1.5; margin: 0; }
+  .slide.dark .feat-card p { color: hsla(0,0%,100%,0.75); }
+
+  /* feature pills */
+  .pill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
+  .feat-pill { background: var(--color-neutral-50); border: 1px solid var(--color-neutral-300); border-radius: 12px; padding: 18px; display: flex; align-items: center; gap: 12px; }
+  .feat-pill .ico { font-size: 24px; color: var(--color-primary-500); }
+  .feat-pill .label { font-size: 15px; font-weight: 600; color: var(--color-secondary-500); }
+  .slide.dark .feat-pill { background: hsla(0,0%,100%,0.06); border-color: hsla(0,0%,100%,0.12); }
+  .slide.dark .feat-pill .label { color: #fff; }
+  .slide.dark .feat-pill .ico { color: var(--color-primary-300); }
+
+  /* CSM phases */
+  .phase-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; flex: 1; margin-top: 32px; align-items: stretch; }
+  .phase-big { background: linear-gradient(180deg, var(--color-neutral-50) 0%, #fff 100%); border: 1px solid var(--color-neutral-300); border-radius: 16px; padding: 32px; position: relative; }
+  .phase-big::before { content: ''; position: absolute; top: -2px; left: 32px; right: 32px; height: 4px; background: var(--color-primary-400); border-radius: 0 0 4px 4px; }
+  .phase-big .num { font-family: var(--font-display); font-size: 64px; font-weight: 700; color: var(--color-primary-300); line-height: 1; margin-bottom: 12px; }
+  .phase-big .period { font-size: 13px; color: var(--color-neutral-700); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+  .phase-big h4 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 0 0 12px; color: var(--color-secondary-500); }
+  .phase-big p { font-size: 14px; color: var(--color-neutral-800); line-height: 1.5; margin: 0 0 16px; }
+  .phase-big .actions-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .phase-big .actions-pills .pill { font-size: 11px; font-weight: 600; background: #fff; color: var(--color-secondary-500); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--color-neutral-300); }
+
+  /* Big number */
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: 48px; }
+  .stat-item .stat-num { font-family: var(--font-display); font-size: 88px; font-weight: 700; color: var(--color-primary-300); line-height: 1; letter-spacing: -0.03em; }
+  .stat-item .stat-label { font-size: 18px; font-weight: 500; color: hsla(0,0%,100%,0.85); margin-top: 8px; max-width: 280px; line-height: 1.4; }
+
+  /* Pricing table */
+  .pricing-grid-presentation { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px; }
+  .price-tier { background: #fff; border: 1px solid var(--color-neutral-300); border-radius: 12px; padding: 20px; text-align: center; }
+  .price-tier .range { font-size: 13px; font-weight: 700; color: var(--color-neutral-800); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px; }
+  .price-tier .val { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--color-secondary-500); }
+  .price-tier.featured { background: var(--color-primary-100); border-color: var(--color-primary-400); }
+
+  /* Closing */
+  .closing-cta { background: hsla(0,0%,100%,0.08); border: 1px solid hsla(0,0%,100%,0.2); border-radius: 24px; padding: 56px; margin-top: 48px; max-width: 800px; }
+  .closing-cta h3 { font-family: var(--font-display); font-size: 32px; font-weight: 700; color: #fff; margin: 0 0 12px; }
+  .closing-cta p { font-size: 18px; color: hsla(0,0%,100%,0.75); line-height: 1.5; margin: 0; }
+
+  /* Paul mascot decoration */
+  .paul-bg { position: absolute; right: -80px; bottom: -80px; width: 480px; opacity: 0.1; filter: brightness(0) invert(1); }
+</style>
+</head>
+<body>
+<deck-stage>
+
+  <!-- Slide 1: Hero -->
+  <section class="slide hero-slide dark" data-screen-label="01 Cover">
+    <img src="assets/logo-flatchr-paul.svg" alt="Paul" class="paul-wrap" />
+    <div class="slide-eyebrow">Catalogue Produit 2026</div>
+    <h1>Une seule plateforme.<br/>Tous les leviers pour recruter.</h1>
+    <div class="subtitle">Le socle, les packs, les options. Tout ce que Flatchr peut faire pour votre entreprise, présenté simplement.</div>
+    <div class="meta">
+      <div class="meta-item">
+        <div class="key">Préparé pour</div>
+        <div class="val">[ Nom du client ]</div>
+      </div>
+      <div class="meta-item">
+        <div class="key">Présenté par</div>
+        <div class="val">[ Sales · CSM ]</div>
+      </div>
+      <div class="meta-item">
+        <div class="key">Date</div>
+        <div class="val">Édition 2026</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 2: Structure -->
+  <section class="slide" data-screen-label="02 Structure">
+    <div class="slide-eyebrow">L'offre Flatchr 2026</div>
+    <h2>Une offre adaptée à chaque organisation</h2>
+    <div class="cols-3">
+      <div class="feat-card">
+        <div class="ico-wrap"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">foundation</span></div>
+        <h3>Socle fonctionnel</h3>
+        <p>Identique pour tous. Toutes les briques essentielles pour recruter : emplacements, Kanban, Site Carrière Premium, multidiffusion, IA intégrée.</p>
+      </div>
+      <div class="feat-card">
+        <div class="ico-wrap" style="background: var(--color-pink-200); color: var(--color-pink-600);"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">inventory_2</span></div>
+        <h3>Packs stratégiques</h3>
+        <p>Scaling pour accélérer avec l'IA. Entreprise pour la sécurité et la conformité. Multi-Entités pour piloter en décentralisé.</p>
+      </div>
+      <div class="feat-card">
+        <div class="ico-wrap" style="background: var(--color-yellow-200); color: var(--color-yellow-600);"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">extension</span></div>
+        <h3>Catalogue produit</h3>
+        <p>Imports, formations, SIRH, tests de personnalité, sourcing, photos & vidéos… Internes et partenaires, à la carte.</p>
+      </div>
+    </div>
+    <div class="slide-footer"><img src="assets/logo-flatchr.svg" class="slide-logo" alt="Flatchr" /><div class="right"><span>2 / 7</span></div></div>
+  </section>
+
+  <!-- Slide 3: Socle -->
+  <section class="slide" data-screen-label="03 Socle">
+    <div class="slide-eyebrow">Inclus pour tous</div>
+    <h2>Le socle fonctionnel</h2>
+    <div class="lead" style="margin-bottom: 20px;">Identique pour tous les clients, non négociable. Le contenu du socle ne peut pas être réduit. Garantie de stabilité et de cohérence.</div>
+    <div class="pill-grid" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">work</span><div class="label">Emplacements illimités</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">view_kanban</span><div class="label">Kanban candidats</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">language</span><div class="label">Site Carrière Premium</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">hub</span><div class="label">Multi-diffusion</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">badge</span><div class="label">Gestion des rôles</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">event</span><div class="label">Prise de RDV</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">search</span><div class="label">Recherche IA</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">auto_awesome</span><div class="label">Parsing IA & FIT</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">analytics</span><div class="label">Statistiques & DAR</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">inventory_2</span><div class="label">Viviers & CV-thèque</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">sell</span><div class="label">Tags & templates</div></div>
+      <div class="feat-pill"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">chat</span><div class="label">Messagerie</div></div>
+    </div>
+    <div class="slide-footer"><img src="assets/logo-flatchr.svg" class="slide-logo" alt="Flatchr" /><div class="right"><span>3 / 7</span></div></div>
+  </section>
+
+  <!-- Slide 4: CSM -->
+  <section class="slide" data-screen-label="04 CSM">
+    <div class="slide-eyebrow">Accompagnement inclus</div>
+    <h2>Votre CSM dédié sur 12 mois</h2>
+    <div class="lead">Pas un support anonyme. Un interlocuteur unique qui connaît votre setup, vos enjeux, vos équipes. Et qui vous accompagne en 3 phases pour maximiser votre ROI.</div>
+    <div class="phase-row">
+      <div class="phase-big">
+        <div class="num">01</div>
+        <div class="period">Mois 1 — 3</div>
+        <h4>Kick-off & Onboarding</h4>
+        <p>Configuration de la plateforme, formation des équipes et activation des premières offres.</p>
+        <div class="actions-pills">
+          <span class="pill">Kick-off</span><span class="pill">Audit besoins</span><span class="pill">Setup compte</span><span class="pill">Formation initiale</span>
+        </div>
+      </div>
+      <div class="phase-big">
+        <div class="num">02</div>
+        <div class="period">Mois 4 — 9</div>
+        <h4>Suivi & Optimisation</h4>
+        <p>Points réguliers de pilotage, analyse de l'adoption et activation de nouvelles fonctionnalités.</p>
+        <div class="actions-pills">
+          <span class="pill">QBR</span><span class="pill">Analyse KPIs</span><span class="pill">Ateliers RH</span><span class="pill">Best practices</span>
+        </div>
+      </div>
+      <div class="phase-big">
+        <div class="num">03</div>
+        <div class="period">Mois 10 — 12</div>
+        <h4>Bilan & Renouvellement</h4>
+        <p>Bilan annuel, recommandations stratégiques et préparation du renouvellement.</p>
+        <div class="actions-pills">
+          <span class="pill">Bilan annuel</span><span class="pill">Roadmap N+1</span><span class="pill">Upsell</span><span class="pill">Témoignage</span>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><img src="assets/logo-flatchr.svg" class="slide-logo" alt="Flatchr" /><div class="right"><span>4 / 7</span></div></div>
+  </section>
+
+  <!-- Slide 5: Packs -->
+  <section class="slide" data-screen-label="05 Packs">
+    <div class="slide-eyebrow">À la carte</div>
+    <h2>Trois packs stratégiques</h2>
+    <div class="cols-3">
+      <div class="feat-card" style="border-color: var(--color-primary-400); position: relative;">
+        <div class="ico-wrap"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">rocket_launch</span></div>
+        <h3>Pack Scaling</h3>
+        <p style="margin-bottom: 24px;">Accélérez vos recrutements avec l'IA. Matching, Ranking, Transcript, Évaluations, Flatchr Skill.</p>
+        <div style="font-family: var(--font-display); font-size: 32px; font-weight: 700; color: var(--color-secondary-500);">2 500 € <span style="font-size: 14px; color: var(--color-neutral-800); font-weight: 500;">/ an</span></div>
+      </div>
+      <div class="feat-card">
+        <div class="ico-wrap" style="background: var(--color-secondary-500); color: #fff;"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">shield_lock</span></div>
+        <h3>Pack Entreprise</h3>
+        <p style="margin-bottom: 24px;">Sécurité, conformité, gouvernance. SSO, Multi-Compte, API, Statistiques avancées, JTMO.</p>
+        <div style="font-family: var(--font-display); font-size: 32px; font-weight: 700; color: var(--color-secondary-500);">3 000 € <span style="font-size: 14px; color: var(--color-neutral-800); font-weight: 500;">/ an</span></div>
+      </div>
+      <div class="feat-card">
+        <div class="ico-wrap" style="background: var(--color-pink-200); color: var(--color-pink-600);"><span class="ico" style="font-family:'Material Symbols Outlined';font-feature-settings:'liga'">account_tree</span></div>
+        <h3>Pack Multi-Entités</h3>
+        <p style="margin-bottom: 24px;">Pilotage RH décentralisé. Stats consolidées, CV-thèque partagée, sites carrière agrégés.</p>
+        <div style="font-family: var(--font-display); font-size: 32px; font-weight: 700; color: var(--color-secondary-500);">500 € <span style="font-size: 14px; color: var(--color-neutral-800); font-weight: 500;">/ compte</span></div>
+      </div>
+    </div>
+    <div class="slide-footer"><img src="assets/logo-flatchr.svg" class="slide-logo" alt="Flatchr" /><div class="right"><span>5 / 7</span></div></div>
+  </section>
+
+  <!-- Slide 6: Pricing -->
+  <section class="slide" data-screen-label="06 Tarifs">
+    <div class="slide-eyebrow">Tarif annuel HT</div>
+    <h2>Un prix par taille d'entreprise</h2>
+    <div class="lead">Un tarif par tranche d'effectif. Pas de mauvaises surprises. Tarif spécifique pour les cabinets de recrutement.</div>
+    <div class="pricing-grid-presentation">
+      <div class="price-tier"><div class="range">1 — 50</div><div class="val">3 000 €</div></div>
+      <div class="price-tier"><div class="range">51 — 100</div><div class="val">5 000 €</div></div>
+      <div class="price-tier"><div class="range">101 — 200</div><div class="val">7 000 €</div></div>
+      <div class="price-tier"><div class="range">201 — 300</div><div class="val">10 000 €</div></div>
+      <div class="price-tier"><div class="range">301 — 400</div><div class="val">13 000 €</div></div>
+      <div class="price-tier"><div class="range">401 — 600</div><div class="val">18 000 €</div></div>
+      <div class="price-tier"><div class="range">601 — 1000</div><div class="val">25 000 €</div></div>
+      <div class="price-tier featured"><div class="range">+ 1000</div><div class="val" style="color: var(--color-primary-600)">Sur mesure</div></div>
+    </div>
+    <div class="slide-footer"><img src="assets/logo-flatchr.svg" class="slide-logo" alt="Flatchr" /><div class="right"><span>6 / 7</span></div></div>
+  </section>
+
+  <!-- Slide 7: Closing -->
+  <section class="slide cyan" data-screen-label="07 Closing">
+    <div class="slide-eyebrow" style="color: rgba(255,255,255,0.9);">Prochaines étapes</div>
+    <h2 style="font-size: 64px;">Construisons votre devis<br/>ensemble.</h2>
+    <div class="lead" style="max-width: 900px;">
+      Toutes les options présentées dans ce document sont disponibles dans notre catalogue interactif. Sélectionnez ce qui correspond à vos besoins, calculez votre devis en direct, et signez en confiance.
+    </div>
+    <div class="closing-cta">
+      <h3>Prêts à démarrer ?</h3>
+      <p>Contactez votre Account Executive ou votre CSM pour finaliser votre devis personnalisé et planifier votre kick-off.</p>
+    </div>
+    <div class="slide-footer" style="bottom: 32px;">
+      <img src="assets/logo-flatchr.svg" class="slide-logo" alt="Flatchr" />
+      <div class="right">
+        <a href="index.html" style="color: rgba(255,255,255,0.85); text-decoration: underline; font-size: 13px;">← Retour au catalogue interactif</a>
+      </div>
+    </div>
+  </section>
+
+</deck-stage>
+
+<script src="deck-stage.js"></script>
+</body>
+</html>

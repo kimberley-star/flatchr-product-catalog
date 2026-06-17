@@ -1,0 +1,246 @@
+/* ============================================================================
+ * Flatchr Design System — Colors & Type
+ * Source of truth: flatchr-ds/packages/ds-theme/src/theme/
+ * Fonts: Poppins (display/headings) + Lato (body/UI) — both via Google Fonts
+ * ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,400;1,700&family=Inconsolata:wght@400;700&display=swap');
+
+:root {
+  /* ─── Brand: Primary (Flatchr Cyan) ─────────────────────────────────── */
+  --color-primary-100: hsla(189, 100%, 97%, 1);
+  --color-primary-200: hsla(188,  99%, 93%, 1);
+  --color-primary-300: hsla(188,  99%, 83%, 1);
+  --color-primary-400: hsla(188,  99%, 39%, 1); /* base */
+  --color-primary-500: hsla(188,  99%, 35%, 1);
+  --color-primary-600: hsla(188,  99%, 25%, 1);
+  --color-primary:     var(--color-primary-400);
+
+  /* ─── Brand: Secondary (Deep Navy) ──────────────────────────────────── */
+  --color-secondary-200: hsla(212, 37%, 60%, 1);
+  --color-secondary-300: hsla(212, 37%, 47%, 1);
+  --color-secondary-400: hsla(212, 37%, 39%, 1);
+  --color-secondary-500: hsla(212, 37%, 27%, 1); /* base */
+  --color-secondary-600: hsla(212, 37%, 15%, 1);
+  --color-secondary:     var(--color-secondary-500);
+  --color-secondary-600-50: hsla(212, 37%, 15%, 0.5);
+
+  /* ─── Neutrals (cool, blue-grey) ────────────────────────────────────── */
+  --color-neutral-50:  hsla(200, 27%, 98%, 1);
+  --color-neutral-100: hsla(211, 30%, 96%, 1);
+  --color-neutral-200: hsla(211, 30%, 93%, 1);
+  --color-neutral-300: hsla(211, 30%, 90%, 1);
+  --color-neutral-400: hsla(211, 30%, 87%, 1);
+  --color-neutral-500: hsla(211, 30%, 84%, 1);
+  --color-neutral-600: hsla(211, 30%, 72%, 1);
+  --color-neutral-700: hsla(211, 30%, 60%, 1);
+  --color-neutral-800: hsla(211, 30%, 56%, 1);
+
+  /* ─── Basics ────────────────────────────────────────────────────────── */
+  --color-white: hsla(0, 0%, 100%, 1);
+  --color-black: hsla(0, 0%, 0%, 1);
+  --color-black-03: hsla(0, 0%, 0%, 0.03);
+  --color-black-05: hsla(0, 0%, 0%, 0.05);
+  --color-overlay:  hsla(212, 37%, 15%, 0.5);
+
+  /* ─── Status ────────────────────────────────────────────────────────── */
+  --color-success-400: hsla(162, 79%, 45%, 1); /* base */
+  --color-success-500: hsla(162, 79%, 37%, 1);
+  --color-success-600: hsla(162, 82%, 25%, 1);
+
+  --color-error-400:   hsla(0, 78%, 57%, 1); /* base */
+  --color-error-500:   hsla(0, 77%, 47%, 1);
+  --color-error-600:   hsla(0, 100%, 20%, 1);
+
+  --color-warning-400: hsla(35, 100%, 53%, 1); /* base */
+  --color-warning-500: hsla(34, 100%, 41%, 1);
+  --color-warning-600: hsla(30, 100%, 32%, 1);
+
+  --color-info-400:    hsla(212, 100%, 53%, 1); /* base */
+  --color-info-500:    hsla(212, 100%, 43%, 1);
+
+  --color-disable-400: hsla(213, 43%, 96%, 1);
+  --color-disable-500: hsla(213, 43%, 86%, 1);
+
+  /* ─── Accent palette (used in tags, charts, illustrations) ──────────── */
+  --color-green-200:  hsla(162, 79%, 87%, 1);
+  --color-green-400:  hsla(162, 79%, 45%, 1);
+  --color-green-600:  hsla(162, 79%, 25%, 1);
+  --color-blue-200:   hsla(212, 100%, 91%, 1);
+  --color-blue-400:   hsla(212, 100%, 53%, 1);
+  --color-blue-600:   hsla(212, 100%, 24%, 1);
+  --color-pink-200:   hsla(335, 79%, 93%, 1);
+  --color-pink-400:   hsla(335, 79%, 64%, 1);
+  --color-pink-600:   hsla(335, 79%, 50%, 1);
+  --color-yellow-200: hsla( 47, 100%, 91%, 1);
+  --color-yellow-400: hsla( 47, 100%, 56%, 1);
+  --color-yellow-600: hsla( 47, 100%, 42%, 1);
+  --color-orange-100: hsla( 35, 100%, 96%, 1);
+  --color-orange-200: hsla( 35, 100%, 91%, 1);
+  --color-orange-400: hsla( 35, 100%, 53%, 1);
+  --color-orange-600: hsla( 35, 100%, 41%, 1);
+  --color-grey-200:   hsla(210,  21%, 70%, 1);
+  --color-grey-400:   hsla(210,  21%, 56%, 1);
+  --color-grey-600:   hsla(210,  21%, 40%, 1);
+
+  /* ─── Gradient (subtle background wash) ─────────────────────────────── */
+  --gradient-1: linear-gradient(180deg, hsla(0, 0%, 100%, 1), hsla(213, 43%, 96%, 1));
+
+  /* ─── Semantic shortcuts (use these in product) ─────────────────────── */
+  --bg-app:        var(--color-neutral-50);
+  --bg-surface:    var(--color-white);
+  --bg-muted:      var(--color-neutral-100);
+  --bg-hover:      var(--color-neutral-100);
+  --fg-primary:    var(--color-secondary-500);   /* main text */
+  --fg-secondary:  var(--color-neutral-800);     /* labels, captions */
+  --fg-muted:      var(--color-neutral-700);     /* placeholder, hints */
+  --fg-disabled:   var(--color-neutral-600);
+  --fg-on-brand:   var(--color-white);
+  --border-subtle: var(--color-neutral-300);
+  --border-strong: var(--color-neutral-500);
+  --link:          var(--color-primary-400);
+  --link-hover:    var(--color-primary-500);
+
+  /* ─── Type ──────────────────────────────────────────────────────────── */
+  --font-display: "Poppins", Arial, Helvetica, sans-serif; /* headings, brand */
+  --font-body:    "Lato",    Arial, Helvetica, sans-serif; /* UI, body, forms */
+  --font-mono:    "Inconsolata", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Raw size scale (px) — from theme.fontSize */
+  --fs-8:  8px;
+  --fs-12: 12px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-24: 24px;
+  --fs-32: 32px;
+  --fs-40: 40px;
+  --fs-48: 48px;
+
+  /* Weights */
+  --fw-light:     400;  /* per typography.js _light */
+  --fw-regular:   500;
+  --fw-semibold:  600;
+  --fw-bold:      700;
+
+  /* ─── Spacing (theme.spacing) ──────────────────────────────────────── */
+  --sp-4:  4px;
+  --sp-6:  6px;
+  --sp-8:  8px;
+  --sp-12: 12px;
+  --sp-16: 16px;
+  --sp-24: 24px;
+  --sp-32: 32px;
+  --sp-40: 40px;
+  --sp-48: 48px;
+  --sp-64: 64px;
+
+  /* ─── Radius ───────────────────────────────────────────────────────── */
+  --r-4:  4px;
+  --r-6:  6px;
+  --r-8:  8px;
+  --r-16: 16px;
+  --r-24: 24px;
+  --r-pill: 999px;
+
+  /* ─── Elevation (shadow ramp — cool blueish ink, not pure black) ───── */
+  --shadow-sm: 0px 11px 6px rgba(43, 67, 94, 0.02), 0px 5px 5px rgba(43, 67, 94, 0.03), 0px 1px 3px rgba(43, 67, 94, 0.03), 0px 0px 0px rgba(43, 67, 94, 0.03);
+  --shadow-md: 0px 27px 16px rgba(43, 67, 94, 0.02), 0px 12px 12px rgba(43, 67, 94, 0.03), 0px 3px 7px rgba(43, 67, 94, 0.03), 0px 0px 0px rgba(43, 67, 94, 0.03);
+  --shadow-lg: 0px 80px 32px rgba(43, 67, 94, 0.01), 0px 45px 27px rgba(43, 67, 94, 0.02), 0px 20px 20px rgba(43, 67, 94, 0.03), 0px 5px 11px rgba(43, 67, 94, 0.04), 0px 0px 0px rgba(43, 67, 94, 0.04);
+}
+
+/* ─── Base & defaults ─────────────────────────────────────────────────── */
+html, body {
+  font-family: var(--font-body);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-light);
+  color: var(--fg-primary);
+  background-color: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─── Semantic typography classes ─────────────────────────────────────── */
+.t-display, h1.t-display {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-48);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--color-secondary-500);
+}
+.t-h1, h1 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-32);
+  line-height: 1.2;
+  color: var(--color-secondary-500);
+  letter-spacing: -0.005em;
+}
+.t-h2, h2 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-24);
+  line-height: 1.25;
+  color: var(--color-secondary-500);
+}
+.t-h3, h3 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-18);
+  line-height: 1.3;
+  color: var(--color-secondary-500);
+}
+.t-h4, h4 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-16);
+  line-height: 1.35;
+  color: var(--color-secondary-500);
+}
+
+.t-body, p {
+  font-family: var(--font-body);
+  font-weight: var(--fw-light);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  color: var(--fg-primary);
+}
+.t-body-lg {
+  font-family: var(--font-body);
+  font-weight: var(--fw-light);
+  font-size: var(--fs-16);
+  line-height: 1.55;
+  color: var(--fg-primary);
+}
+.t-label {
+  font-family: var(--font-body);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-12);
+  line-height: 1.4;
+  color: var(--fg-secondary);
+  letter-spacing: 0.02em;
+}
+.t-caption {
+  font-family: var(--font-body);
+  font-weight: var(--fw-light);
+  font-size: var(--fs-12);
+  line-height: 1.4;
+  color: var(--fg-muted);
+}
+.t-button {
+  font-family: var(--font-body);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-14);
+  letter-spacing: 0.01em;
+}
+.t-mono, code, pre {
+  font-family: var(--font-mono);
+  font-size: var(--fs-14);
+}
+.t-link, a {
+  color: var(--link);
+  text-decoration: none;
+}
+.t-link:hover, a:hover { color: var(--link-hover); text-decoration: underline; }

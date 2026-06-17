@@ -2438,7 +2438,8 @@ body { background: var(--bg-app); color: var(--fg-primary); }
 @media print {
   @page { size: A4; margin: 14mm; }
   body { background: #fff !important; }
-  body > *:not(.export-overlay) { display: none !important; }
+  body > *:not(#root) { display: none !important; }
+  #root > *:not(.export-overlay) { display: none !important; }
   .export-overlay {
     position: static !important;
     background: #fff !important;

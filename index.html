@@ -4017,7 +4017,7 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
               <div className="drawer-tabs">
                 <button className={tab === 'overview' ? 'active' : ''} onClick={() => setTab('overview')}>Aperçu</button>
                 <button className={tab === 'benefits' ? 'active' : ''} onClick={() => setTab('benefits')}>Bénéfices</button>
-                {content.type !== 'external' && <button className={tab === 'video' ? 'active' : ''} onClick={() => setTab('video')} data-comment-anchor="a7dc608558-button-951-49">Vidéo</button>}
+                {content.type !== 'external' && data.id === 'site' && <button className={tab === 'video' ? 'active' : ''} onClick={() => setTab('video')} data-comment-anchor="a7dc608558-button-951-49">Vidéo</button>}
               </div>
 
               {tab === 'overview' &&

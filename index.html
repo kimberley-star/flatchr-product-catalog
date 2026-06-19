@@ -2507,26 +2507,26 @@ const EFFECTIF_PUBLIC_TIERS = [
 
 // ─── Socle fonctionnel : features incluses ────────────────────
 const SOCLE_FEATURES = [
-  { ico: 'work',           label: 'Emplacements illimités' },
-  { ico: 'view_kanban',    label: 'Kanban & gestion des tâches' },
-  { ico: 'badge',          label: 'Gestion des rôles' },
-  { ico: 'chat',           label: 'Messagerie & messages auto' },
-  { ico: 'language',       label: 'Site Carrière Premium' },
-  { ico: 'hub',            label: 'Multi-diffusion' },
-  { ico: 'sell',           label: 'Tags & templates' },
-  { ico: 'event',          label: 'Prise de RDV intégrée' },
-  { ico: 'search',         label: 'Recherche booléenne par prompt' },
-  { ico: 'analytics',      label: 'Statistiques & DAR' },
-  { ico: 'auto_awesome',   label: 'Parsing IA & Flatchr FIT' },
-  { ico: 'inventory_2',    label: 'Viviers & CV-thèque' },
+  { ico: 'work',           label: 'Emplacements illimités',           details: 'Créez autant d\'offres que vous le souhaitez, sans restriction de volume. Chaque offre dispose de son propre pipeline personnalisable.' },
+  { ico: 'view_kanban',    label: 'Kanban & gestion des tâches',      details: 'Vue kanban par pipeline, drag & drop des candidats entre étapes, création de tâches avec rappels et assignation aux membres de l\'équipe.' },
+  { ico: 'badge',          label: 'Gestion des rôles',                details: 'Définissez des profils d\'accès personnalisés : administrateur, recruteur, manager, lecture seule. Droits affinés par offre, vivier ou entité.' },
+  { ico: 'chat',           label: 'Messagerie & messages auto',       details: 'Messagerie intégrée avec les candidats, modèles d\'emails personnalisables, envoi automatique à chaque changement d\'étape, historique centralisé.' },
+  { ico: 'language',       label: 'Site Carrière Premium',            details: 'Site carrière hébergé et personnalisé aux couleurs de votre marque employeur. Optimisé SEO, responsive, avec moteur de recherche d\'offres intégré.' },
+  { ico: 'hub',            label: 'Multi-diffusion',                  details: 'Publiez vos offres simultanément sur +180 jobboards (Indeed, LinkedIn, APEC, France Travail…) depuis un seul écran, avec suivi des candidatures par source.' },
+  { ico: 'sell',           label: 'Tags & templates',                 details: 'Étiquetez candidats et offres pour filtrer rapidement. Bibliothèque de templates d\'emails, de fiches de poste et de grilles d\'évaluation réutilisables.' },
+  { ico: 'event',          label: 'Prise de RDV intégrée',           details: 'Proposez des créneaux directement depuis Flatchr, synchronisés avec Google Calendar et Outlook. Le candidat choisit son créneau sans aller-retour mail.' },
+  { ico: 'search',         label: 'Recherche booléenne par prompt',   details: 'Interrogez votre CV-thèque en langage naturel (ex. : "développeur React 3 ans Paris"). L\'IA construit la requête booléenne et remonte les profils pertinents.' },
+  { ico: 'analytics',      label: 'Statistiques & DAR',               details: 'Tableau de bord temps réel : délai de recrutement, taux de conversion par étape, sources les plus performantes, et Déclaration Annuelle de Recrutement exportable.' },
+  { ico: 'auto_awesome',   label: 'Parsing IA & Flatchr FIT',        details: 'Extraction automatique des informations clés du CV (expériences, compétences, formation). Scoring Flatchr FIT pour mesurer l\'adéquation candidat / fiche de poste.' },
+  { ico: 'inventory_2',    label: 'Viviers & CV-thèque',             details: '10 viviers inclus pour organiser vos profils par métier ou projet. CV-thèque partagée avec recherche multi-critères et alertes sur nouveaux profils.' },
 ];
 
 // ─── IA intégrée (détail) ─────────────────────────────────────
 const SOCLE_AI_FEATURES = [
-  { ico: 'auto_awesome',      label: 'Analyse Flatchr FIT — Scoring IA des candidatures' },
-  { ico: 'document_scanner',  label: 'Parsing automatique des CV' },
-  { ico: 'sell',              label: 'Remplissage automatique des tags' },
-  { ico: 'search',            label: 'Suggest IA - Recherche booléenne via prompt en langage naturel', roadmap: 'Q3 2026' },
+  { ico: 'auto_awesome',      label: 'Analyse Flatchr FIT — Scoring IA des candidatures', details: 'Chaque candidature reçoit un score d\'adéquation (0–100) calculé par IA à partir de la fiche de poste. Score expliqué, révisable et non bloquant pour le recruteur.' },
+  { ico: 'document_scanner',  label: 'Parsing automatique des CV',                        details: 'Extraction structurée des données CV (identité, expériences, formation, compétences) en moins de 2 secondes, quel que soit le format (PDF, Word, image).' },
+  { ico: 'sell',              label: 'Remplissage automatique des tags',                   details: 'L\'IA détecte et applique automatiquement les tags métier, compétences et niveau d\'expérience à partir du contenu du CV, sans action manuelle.' },
+  { ico: 'search',            label: 'Suggest IA — Recherche booléenne en langage naturel', details: 'Décrivez le profil recherché en français, l\'IA génère la requête booléenne optimale et interroge la CV-thèque en temps réel.', roadmap: 'Q3 2026' },
 ];
 
 // ─── Consommation à l'usage ──────────────────────────────────
@@ -3926,24 +3926,14 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
               </div>
               <div className="section-block">
                 <h4>Toutes les fonctionnalités incluses</h4>
-                <ul className="benefits-list">
-                  {SOCLE_FEATURES.map((f, i) =>
-                <li key={i}>
-                      <span className="ico">{f.ico}</span>
-                      <span>{f.label}{f.roadmap && <span className="roadmap-pill"><span className="ico">schedule</span>En cours de dév.</span>}</span>
-                    </li>
-                )}
+                <ul className="pack-feature-list">
+                  {SOCLE_FEATURES.map((f, i) => <PackFeatureItem key={i} feature={f} />)}
                 </ul>
               </div>
               <div className="section-block">
                 <h4>IA intégrée de base</h4>
-                <ul className="benefits-list">
-                  {SOCLE_AI_FEATURES.map((f, i) =>
-                <li key={i}>
-                      <span className="ico">{f.ico}</span>
-                      <span>{f.label}{f.roadmap && <span className="roadmap-pill"><span className="ico">schedule</span>En cours de dév.{typeof f.roadmap === 'string' ? ' · ' + f.roadmap : ''}</span>}</span>
-                    </li>
-                )}
+                <ul className="pack-feature-list">
+                  {SOCLE_AI_FEATURES.map((f, i) => <PackFeatureItem key={i} feature={{ ...f, label: f.roadmap ? <>{f.label}<span className="roadmap-pill"><span className="ico">schedule</span>En cours de dév.{typeof f.roadmap === 'string' ? ' · ' + f.roadmap : ''}</span></> : f.label }} />)}
                 </ul>
               </div>
             </>

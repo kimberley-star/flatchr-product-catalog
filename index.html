@@ -3131,7 +3131,8 @@ const computeQuote = (state) => {
   const offeredValue = offeredItems.reduce((s, o) => s + o.price, 0);
 
   // Abonnement récurrent (socle + pack + prestations récurrentes). Partenaires = hors facturation.
-  const recurringSubtotal = (soclePrice ?? 0) + packPrice + recurringInternalTotal;
+  // Year 2+ always uses full effectif price; tier downgrade saving is year-1 only (like months offered)
+  const recurringSubtotal = (fullSoclePrice ?? 0) + packPrice + recurringInternalTotal;
   const pctDiscount = discountType === 'percent' ?
   Math.round(recurringSubtotal * ((discountValue || 0) / 100)) :
   discountValue || 0;
@@ -3140,12 +3141,15 @@ const computeQuote = (state) => {
   const recurringYear2 = Math.max(0, recurringSubtotal - discountAmount);
 
   const monthsCount = Number(monthsOffered) || 0;
-  const monthsOfferedAmount = monthsCount > 0 ? Math.round(recurringYear2 * monthsCount / 12) : 0;
-  const firstYearRecurring = Math.max(0, recurringYear2 - monthsOfferedAmount);
+  // Tier downgrade applies year 1 only — subtract from year 2 base before months-offered calculation
+  const tierYear1Saving = tierDiscountActive ? downgradeSaving : 0;
+  const firstYearBase = Math.max(0, recurringYear2 - tierYear1Saving);
+  const monthsOfferedAmount = monthsCount > 0 ? Math.round(firstYearBase * monthsCount / 12) : 0;
+  const firstYearRecurring = Math.max(0, firstYearBase - monthsOfferedAmount);
   const firstYearTotal = firstYearRecurring + oneShotTotal;
 
-  const gestureValue = offeredValue + (tierDiscountActive ? downgradeSaving : 0);
-  const splitYears = monthsCount > 0 || oneShotTotal > 0;
+  const gestureValue = offeredValue;
+  const splitYears = monthsCount > 0 || oneShotTotal > 0 || tierDiscountActive;
 
   return {
     effectif, pack, isCustom, accountType, multiAccountQty,
@@ -3154,7 +3158,7 @@ const computeQuote = (state) => {
     internalItems, externalItems, oneShotTotal, recurringInternalItems, oneShotItems, recurringInternalTotal,
     offeredItems, offeredValue, gestureValue,
     recurringSubtotal, pctDiscount, assoc1901Discount, discountAmount,
-    recurringYear2, monthsCount, monthsOfferedAmount, firstYearRecurring, firstYearTotal,
+    recurringYear2, monthsCount, tierYear1Saving, firstYearBase, monthsOfferedAmount, firstYearRecurring, firstYearTotal,
     splitYears, discountValue, discountType
   };
 };
@@ -3357,7 +3361,7 @@ const ConfigPanel = ({ state, actions, collapsed }) => {
 const QuoteTotals = ({ state }) => {
   const {
     isCustom, oneShotTotal, recurringYear2, monthsCount,
-    monthsOfferedAmount, firstYearTotal, splitYears
+    monthsOfferedAmount, firstYearTotal, splitYears, tierYear1Saving
   } = computeQuote(state);
   return (
     <div className="total-block">
@@ -3370,9 +3374,15 @@ const QuoteTotals = ({ state }) => {
           </> :
         <>
             <div className="total-line">
-              <div><div className="line-label">Abonnement annuel</div><div className="line-meta">{monthsCount > 0 ? 'Dès la 2ème année · HT' : 'Récurrent · HT'}</div></div>
+              <div><div className="line-label">Abonnement annuel</div><div className="line-meta">{splitYears ? 'Dès la 2ème année · HT' : 'Récurrent · HT'}</div></div>
               <div className="line-value">{fmtNum(recurringYear2)}<span className="currency"> €</span></div>
             </div>
+            {tierYear1Saving > 0 &&
+          <div className="total-line">
+                <div><div className="line-label">Remise d'un cran d'effectif</div><div className="line-meta">Sur la 1ère année uniquement</div></div>
+                <div className="line-value" style={{ color: 'var(--color-success-600)' }}>−{fmtNum(tierYear1Saving)}<span className="currency"> €</span></div>
+              </div>
+          }
             {monthsCount > 0 &&
           <div className="total-line">
                 <div><div className="line-label">{monthsCount} mois offert{monthsCount > 1 ? 's' : ''}</div><div className="line-meta">Sur la 1ère année</div></div>
@@ -3419,18 +3429,13 @@ const SummaryCard = ({ state, actions }) => {
               <span className="ico" style={{ fontSize: 18, color: 'var(--color-primary-400)' }}>foundation</span>
               <div>
                 <div className="key">Socle fonctionnel</div>
-                <div className="meta">{!effectif ? 'Non sélectionné' : tierDiscountActive ? 'Facturé « ' + (accountType === 'cabinet' ? downgradeTier.cabinet : accountType === 'public' ? downgradeTier.label : downgradeTier.range) + ' » (cran inférieur)' : accountType === 'cabinet' ? effectif.cabinet : accountType === 'public' ? effectif.label + ' · ' + effectif.range + ' hab.' : effectif.range}</div>
+                <div className="meta">{!effectif ? 'Non sélectionné' : tierDiscountActive ? '1ère année facturée « ' + (accountType === 'cabinet' ? downgradeTier.cabinet : accountType === 'public' ? downgradeTier.label : downgradeTier.range) + ' »' : accountType === 'cabinet' ? effectif.cabinet : accountType === 'public' ? effectif.label + ' · ' + effectif.range + ' hab.' : effectif.range}</div>
               </div>
             </div>
             <div className="value">
               {!effectif ? <span style={{ color: 'var(--color-neutral-700)' }}>—</span> :
               isCustom ? 'Sur devis' :
-              tierDiscountActive ?
-              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                   <s style={{ fontSize: 11, color: 'var(--color-neutral-700)', fontWeight: 500 }}>{formatEUR(fullSoclePrice)}</s>
-                   <span style={{ color: 'var(--color-success-600)' }}>{formatEUR(soclePrice)}</span>
-                 </span> :
-              formatEUR(soclePrice)}
+              formatEUR(fullSoclePrice ?? soclePrice)}
             </div>
           </div>
 
@@ -4172,7 +4177,7 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
     fullSoclePrice, soclePrice, packPrice, internalItems, externalItems, oneShotTotal,
     recurringInternalItems, oneShotItems,
     offeredItems, offeredValue, pctDiscount, assoc1901Discount, discountAmount,
-    recurringYear2, monthsCount, monthsOfferedAmount, firstYearTotal, splitYears
+    recurringYear2, monthsCount, tierYear1Saving, monthsOfferedAmount, firstYearTotal, splitYears
   } = q;
 
   const today = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date());
@@ -4322,23 +4327,13 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                       <td>Socle fonctionnel</td>
                       <td className="exd-meta-cell">
                         {!effectif ? 'Non sélectionné · abonnement existant' :
-                      tierDiscountActive ? `Facturé « ${accountType === 'cabinet' ? downgradeTier.cabinet : accountType === 'public' ? downgradeTier.label : downgradeTier.range} » (cran inférieur)` :
                       accountType === 'cabinet' ? effectif?.cabinet : accountType === 'public' ? (effectif?.label ?? '—') + (effectif?.range ? ' · ' + effectif.range + ' hab.' : '') : effectif?.range}
                       </td>
                       <td className="exd-amount">
                         {!effectif ? <span className="exd-included">—</span> :
-                      tierDiscountActive ?
-                      <><s style={{ color: 'var(--color-neutral-700)', fontWeight: 500, marginRight: 6 }}>{formatEUR(fullSoclePrice)}</s>{formatEUR(soclePrice)} <span>/ an</span></> :
-                      <>{formatEUR(soclePrice)} <span>/ an</span></>}
+                      <>{formatEUR(fullSoclePrice ?? soclePrice)} <span>/ an</span></>}
                       </td>
                     </tr>
-                    {tierDiscountActive &&
-                  <tr className="exd-discount-row">
-                        <td>Remise d'un cran d'effectif</td>
-                        <td className="exd-meta-cell">Palier inférieur facturé (−{upgradePct}%)</td>
-                        <td className="exd-amount exd-negative">− {formatEUR(downgradeSaving)}</td>
-                      </tr>
-                  }
                     <tr>
                       <td>Accompagnement CSM</td>
                       <td className="exd-meta-cell">Inclus dans le socle</td>
@@ -4385,6 +4380,13 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                       <td colSpan={2}>Abonnement annuel{splitYears ? ' · dès la 2ème année' : ''}</td>
                       <td className="exd-amount">{formatEUR(recurringYear2)} <span>/ an</span></td>
                     </tr>
+                    {tierYear1Saving > 0 &&
+                  <tr className="exd-discount-row">
+                        <td>Remise d'un cran d'effectif</td>
+                        <td className="exd-meta-cell">1ère année uniquement (−{upgradePct}%)</td>
+                        <td className="exd-amount exd-negative">− {formatEUR(tierYear1Saving)}</td>
+                      </tr>
+                  }
                     {monthsCount > 0 &&
                   <tr className="exd-discount-row">
                         <td>{monthsCount} premier{monthsCount > 1 ? 's' : ''} mois offert{monthsCount > 1 ? 's' : ''}</td>

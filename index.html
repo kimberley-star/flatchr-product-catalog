@@ -1438,6 +1438,11 @@ body { background: var(--bg-app); color: var(--fg-primary); }
   position: relative;
   overflow: hidden;
 }
+.drawer .mockup.mockup-screenshot {
+  height: auto;
+  display: block;
+  background: none;
+}
 .drawer .mockup .ico { font-size: 56px; color: var(--color-neutral-700); }
 .drawer .mockup .mockup-label {
   position: absolute;
@@ -3907,9 +3912,8 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
           {/* ─── SOCLE ─── */}
           {isSocle &&
           <>
-              <div className="mockup" data-comment-anchor="6fcf9bc9db-div-813-15">
-                <span className="ico">dashboard</span>
-                <div className="mockup-label">Aperçu plateforme Flatchr</div>
+              <div className="mockup mockup-screenshot" data-comment-anchor="6fcf9bc9db-div-813-15">
+                <img src="project/assets/Home_Hero@2x-min.png" alt="Aperçu plateforme Flatchr" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
               </div>
               <div className="section-block">
                 <h4>Description</h4>

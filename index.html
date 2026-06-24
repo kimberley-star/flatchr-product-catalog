@@ -2513,7 +2513,7 @@ const SOCLE_FEATURES = [
   { ico: 'chat',           label: 'Messagerie & messages auto',       details: 'Messagerie intégrée avec les candidats, modèles d\'emails personnalisables, envoi automatique à chaque changement d\'étape, historique centralisé.' },
   { ico: 'language',       label: 'Site Carrière Premium',            details: 'Site carrière hébergé et personnalisé aux couleurs de votre marque employeur. Optimisé SEO, responsive, avec moteur de recherche d\'offres intégré.' },
   { ico: 'hub',            label: 'Multi-diffusion',                  details: 'Publiez vos offres simultanément sur +180 jobboards (Indeed, LinkedIn, APEC, France Travail…) depuis un seul écran, avec suivi des candidatures par source.' },
-  { ico: 'sell',           label: 'Tags & templates',                 details: 'Étiquetez candidats et offres pour filtrer rapidement. Bibliothèque de templates d\'emails, de fiches de poste et de grilles d\'évaluation réutilisables.' },
+  { ico: 'sell',           label: 'Tags & templates',                 details: 'Étiquetez candidats et offres pour filtrer rapidement. IA qui génère des templates d\'emails, des offres d\'emploi et des grilles d\'évaluation personnalisées selon le contexte du recrutement.', roadmap: 'Q3 2026' },
   { ico: 'event',          label: 'Prise de RDV intégrée',           details: 'Proposez des créneaux directement depuis Flatchr, synchronisés avec Google Calendar et Outlook. Le candidat choisit son créneau sans aller-retour mail.' },
   { ico: 'search',         label: 'Recherche booléenne par prompt',   details: 'Interrogez votre CV-thèque en langage naturel (ex. : "développeur React 3 ans Paris"). L\'IA construit la requête booléenne et remonte les profils pertinents.' },
   { ico: 'analytics',      label: 'Statistiques & DAR',               details: 'Tableau de bord temps réel : délai de recrutement, taux de conversion par étape, sources les plus performantes, et Déclaration Annuelle de Recrutement exportable.' },
@@ -2523,7 +2523,7 @@ const SOCLE_FEATURES = [
 
 // ─── IA intégrée (détail) ─────────────────────────────────────
 const SOCLE_AI_FEATURES = [
-  { ico: 'auto_awesome',      label: 'Analyse Flatchr FIT — Scoring IA des candidatures', details: 'Chaque candidature reçoit un score d\'adéquation (0–100) calculé par IA à partir de la fiche de poste. Score expliqué, révisable et non bloquant pour le recruteur.' },
+  { ico: 'auto_awesome',      label: 'Analyse Flatchr FIT — Scoring IA des candidatures', details: 'Extraction automatique des informations clés du CV (expériences, compétences, formation). Scoring Flatchr FIT pour mesurer l\'adéquation candidat / fiche de poste.' },
   { ico: 'document_scanner',  label: 'Parsing automatique des CV',                        details: 'Extraction structurée des données CV (identité, expériences, formation, compétences) en moins de 2 secondes, quel que soit le format (PDF, Word, image).' },
   { ico: 'sell',              label: 'Remplissage automatique des tags',                   details: 'L\'IA détecte et applique automatiquement les tags métier, compétences et niveau d\'expérience à partir du contenu du CV, sans action manuelle.' },
   { ico: 'search',            label: 'Suggest IA — Recherche booléenne en langage naturel', details: 'Décrivez le profil recherché en français, l\'IA génère la requête booléenne optimale et interroge la CV-thèque en temps réel.', roadmap: 'Q3 2026' },
@@ -2552,9 +2552,9 @@ const PACKS = [
       'Recrutement stratégique et opérationnel',
     ],
     features: [
-      { ico: 'auto_awesome',  label: 'Matching & Ranking IA',  details: 'Algorithme IA Jemmo : analyse chaque candidature au regard de la fiche de poste et trie automatiquement par pertinence. Score expliqué et révisable.' },
-      { ico: 'subtitles',     label: 'Transcript IA',           details: 'Enregistrement, transcription et résumé IA des entretiens visio. Compatible Google Meet, Zoom et Teams. Synchronisation auto sur la fiche candidat.' },
-      { ico: 'scoreboard',    label: 'Évaluations IA',      details: 'Grilles d’évaluation structurées par poste, scoring multi-critères et comparaison des candidats. Export PDF pour les comités.' },
+      { ico: 'auto_awesome',  label: 'Matching & Ranking IA',  details: 'Algorithme IA Jemmo : analyse chaque candidature au regard de la fiche de poste et trie automatiquement par pertinence. Score expliqué, transparent et non bloquant pour le recruteur.' },
+      { ico: 'subtitles',     label: 'Transcript IA',           details: 'Enregistrement, transcription et résumé IA des entretiens visio. Compatible Google Meet, Zoom et Teams. Synchronisation auto sur la fiche candidat. 5 licences incluses.' },
+      { ico: ‘scoreboard’,    label: ‘Évaluations IA’,      details: ‘Grilles d’évaluation structurées par poste, scoring multi-critères et comparaison des candidats. Export PDF pour les comités. 60 tests / an.’ },
       { ico: 'verified',      label: 'Flatchr Skill',         details: 'Détection automatique des compétences à partir des CV, taxonomie unifiée et recherche par compétence dans la CV-thèque.' },
     ],
     limitations: [
@@ -2576,7 +2576,7 @@ const PACKS = [
     ],
     features: [
       { ico: 'key',           label: 'SSO (Single Sign-On)',                 details: 'Authentification unique via votre IdP (SAML 2.0 / OIDC). Compatible Azure AD, Okta, Google Workspace.' },
-      { ico: 'corporate_fare',label: 'Multi-Compte (max 5 SIREN)', details: 'Gestion centralisée de plusieurs sociétés sous un seul contrat (jusqu’à 10 SIREN), avec paramétrage par entité.' },
+      { ico: ‘corporate_fare’,label: ‘Multi-Compte (max 5 SIREN)’, details: ‘Gestion centralisée de plusieurs sociétés sous un seul contrat (jusqu’à 5 SIREN), avec paramétrage par entité.’ },
       { ico: 'leaderboard',   label: 'Statistiques avancées',             details: 'Dimensions et métriques supplémentaires, exports CSV/Excel, exploration drill-down et alertes sur seuils.' },
       { ico: 'api',           label: 'API & support technique',              details: 'API REST docummentée, webhooks, sandbox de test et support technique dédié. Inclut des ateliers d’intégration.' },
       { ico: 'support_agent', label: 'JTMO (sous éligibilité)',              details: 'Job Targeted Multi-diffusion Optimisée : optimisation continue de la diffusion par IA. Sous éligibilité volume.' },
@@ -2621,8 +2621,8 @@ const CSM_PHASES = [
     label: 'Phase 1',
     period: 'Mois 1 — 3',
     title: 'Récapitulatif & Onboarding',
-    titleMeta: '2 RDV de 1h30 max / mois',
-    desc: 'Configuration de la plateforme, formation des équipes et activation des premières offres.',
+    titleMeta: '2 RDV de 1h30 max',
+    desc: 'Configuration de la plateforme, formation et activation des premières offres.',
     actions: ['Récapitulatif', 'Audit besoins', 'Setup compte', 'Formation initiale', 'Site Carrière'],
   },
   {
@@ -2630,7 +2630,7 @@ const CSM_PHASES = [
     label: 'Phase 2',
     period: 'Mois 4 — 9',
     title: 'Suivi & Optimisation',
-    desc: 'Points réguliers de pilotage, analyse de l\'adoption et activation de nouvelles fonctionnalités.',
+    desc: 'Nos équipes sont là pour vous aider à atteindre vos objectifs, améliorer l\'adoption et activer de nouvelles fonctionnalités.',
     actions: ['QBR', 'Analyse KPIs', 'Nouvelles features', 'Ateliers RH', 'Best practices'],
   },
   {
@@ -3149,12 +3149,13 @@ const computeQuote = (state) => {
   // Tier downgrade applies year 1 only — subtract from year 2 base before months-offered calculation
   const tierYear1Saving = tierDiscountActive ? downgradeSaving : 0;
   const firstYearBase = Math.max(0, recurringYear2 - tierYear1Saving);
-  const monthsOfferedAmount = monthsCount > 0 ? Math.round(firstYearBase * monthsCount / 12) : 0;
-  const firstYearRecurring = Math.max(0, firstYearBase - monthsOfferedAmount);
+  // Months offered extend the contract duration — they do NOT reduce the invoice price
+  const extendedMonths = monthsCount > 0 ? 12 + monthsCount : 12;
+  const firstYearRecurring = firstYearBase;
   const firstYearTotal = firstYearRecurring + oneShotTotal;
 
   const gestureValue = offeredValue;
-  const splitYears = monthsCount > 0 || oneShotTotal > 0 || tierDiscountActive;
+  const splitYears = oneShotTotal > 0 || tierDiscountActive;
 
   return {
     effectif, pack, isCustom, accountType, multiAccountQty,
@@ -3163,7 +3164,7 @@ const computeQuote = (state) => {
     internalItems, externalItems, oneShotTotal, recurringInternalItems, oneShotItems, recurringInternalTotal,
     offeredItems, offeredValue, gestureValue,
     recurringSubtotal, pctDiscount, assoc1901Discount, discountAmount,
-    recurringYear2, monthsCount, tierYear1Saving, firstYearBase, monthsOfferedAmount, firstYearRecurring, firstYearTotal,
+    recurringYear2, monthsCount, extendedMonths, tierYear1Saving, firstYearBase, firstYearRecurring, firstYearTotal,
     splitYears, discountValue, discountType
   };
 };
@@ -3365,8 +3366,8 @@ const ConfigPanel = ({ state, actions, collapsed }) => {
 // ─── Totals block (shared: summary footer + config panel) ───
 const QuoteTotals = ({ state }) => {
   const {
-    isCustom, oneShotTotal, recurringYear2, monthsCount,
-    monthsOfferedAmount, firstYearTotal, splitYears, tierYear1Saving
+    isCustom, oneShotTotal, recurringYear2, monthsCount, extendedMonths,
+    firstYearTotal, splitYears, tierYear1Saving
   } = computeQuote(state);
   return (
     <div className="total-block">
@@ -3390,8 +3391,8 @@ const QuoteTotals = ({ state }) => {
           }
             {monthsCount > 0 &&
           <div className="total-line">
-                <div><div className="line-label">{monthsCount} mois offert{monthsCount > 1 ? 's' : ''}</div><div className="line-meta">Sur la 1ère année</div></div>
-                <div className="line-value" style={{ color: 'var(--color-success-600)' }}>−{fmtNum(monthsOfferedAmount)}<span className="currency"> €</span></div>
+                <div><div className="line-label">{monthsCount} mois offert{monthsCount > 1 ? 's' : ''}</div><div className="line-meta">Contrat de {extendedMonths} mois · HT</div></div>
+                <div className="line-value" style={{ color: 'var(--color-success-600)', fontWeight: 600 }}>+{monthsCount} mois</div>
               </div>
           }
             {oneShotTotal > 0 &&
@@ -3403,7 +3404,7 @@ const QuoteTotals = ({ state }) => {
             <div className="total-divider" />
             <div className="total-label">{splitYears ? 'Total 1ère année' : 'Total annuel'}</div>
             <div className="total-value">{fmtNum(firstYearTotal)}<span className="currency"> €</span></div>
-            <div className="total-period">{splitYears ? 'puis ' + fmtNum(recurringYear2) + ' € / an dès la 2ème année' : 'HT · Renouvelable annuellement'}</div>
+            <div className="total-period">{splitYears ? 'puis ' + fmtNum(recurringYear2) + ' € / an dès la 2ème année' : monthsCount > 0 ? 'HT · Contrat de ' + extendedMonths + ' mois' : 'HT · Renouvelable annuellement'}</div>
           </>
         }
       </div>
@@ -3417,7 +3418,7 @@ const SummaryCard = ({ state, actions }) => {
     effectif, pack, isCustom, accountType, multiAccountQty,
     tierDiscountActive, downgradeTier, fullSoclePrice, soclePrice, packPrice,
     internalItems, externalItems, oneShotTotal, recurringInternalItems, oneShotItems,
-    recurringYear2, monthsCount, monthsOfferedAmount, firstYearTotal, splitYears
+    recurringYear2, monthsCount, extendedMonths, firstYearTotal, splitYears
   } = q;
 
   return (
@@ -3638,7 +3639,7 @@ const CSMSection = ({ onOpen }) =>
           <div className="label" data-comment-anchor="b07a3145f1-div-521-11" style={{ color: "rgb(255, 255, 255)" }}>Suivi annuel personnalisé</div>
           <h3>3 phases pour maximiser votre ROI</h3>
           <p className="desc">
-            Votre CSM vous accompagne sur l'année complète : structuration de votre setup, optimisation continue, puis bilan stratégique. Toujours inclus, jamais en option.
+            Votre CSM vous accompagne sur l'année complète : structuration de votre setup, optimisation continue, puis bilan stratégique.
           </p>
         </div>
         <div className="badge-included">
@@ -3921,13 +3922,13 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
                   Le socle fonctionnel est <strong>identique pour tous les clients</strong>, quel que soit leur secteur ou leur taille. Il contient toutes les briques essentielles pour gérer vos recrutements de A à Z, avec l'IA Flatchr intégrée nativement.
                 </p>
                 <p className="desc-text" style={{ marginTop: 8 }}>
-                  Non négociable, non modifiable. C'est notre engagement de stabilité et de cohérence pour tous nos clients.
+                  C'est notre engagement de stabilité et de cohérence pour tous nos clients.
                 </p>
               </div>
               <div className="section-block">
                 <h4>Toutes les fonctionnalités incluses</h4>
                 <ul className="pack-feature-list">
-                  {SOCLE_FEATURES.map((f, i) => <PackFeatureItem key={i} feature={f} />)}
+                  {SOCLE_FEATURES.map((f, i) => <PackFeatureItem key={i} feature={{ ...f, label: f.roadmap ? <>{f.label}<span className="roadmap-pill"><span className="ico">schedule</span>En cours de dév.{typeof f.roadmap === 'string' ? ' · ' + f.roadmap : ''}</span></> : f.label }} />)}
                 </ul>
               </div>
               <div className="section-block">
@@ -4171,7 +4172,7 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
     fullSoclePrice, soclePrice, packPrice, internalItems, externalItems, oneShotTotal,
     recurringInternalItems, oneShotItems,
     offeredItems, offeredValue, pctDiscount, assoc1901Discount, discountAmount,
-    recurringYear2, monthsCount, tierYear1Saving, monthsOfferedAmount, firstYearTotal, splitYears
+    recurringYear2, monthsCount, extendedMonths, tierYear1Saving, firstYearTotal, splitYears
   } = q;
 
   const today = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date());
@@ -4371,7 +4372,7 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                       </tr>
                   }
                     <tr className="exd-subtotal">
-                      <td colSpan={2}>Abonnement annuel{splitYears ? ' · dès la 2ème année' : ''}</td>
+                      <td colSpan={2}>Abonnement annuel{splitYears ? ' · dès la 2ème année' : monthsCount > 0 ? ' · contrat de ' + extendedMonths + ' mois' : ''}</td>
                       <td className="exd-amount">{formatEUR(recurringYear2)} <span>/ an</span></td>
                     </tr>
                     {tierYear1Saving > 0 &&
@@ -4382,10 +4383,10 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                       </tr>
                   }
                     {monthsCount > 0 &&
-                  <tr className="exd-discount-row">
-                        <td>{monthsCount} premier{monthsCount > 1 ? 's' : ''} mois offert{monthsCount > 1 ? 's' : ''}</td>
-                        <td className="exd-meta-cell">Sur la 1ère année</td>
-                        <td className="exd-amount exd-negative">− {formatEUR(monthsOfferedAmount)}</td>
+                  <tr>
+                        <td>{monthsCount} mois offert{monthsCount > 1 ? 's' : ''}</td>
+                        <td className="exd-meta-cell">Contrat de {extendedMonths} mois</td>
+                        <td className="exd-amount" style={{ color: 'var(--color-success-600)', fontWeight: 600 }}>+{monthsCount} mois</td>
                       </tr>
                   }
                     {oneShotItems.map((o) =>

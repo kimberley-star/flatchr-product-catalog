@@ -5563,6 +5563,11 @@ const {
   INTERNAL_OPTIONS, EXTERNAL_OPTIONS, NEGO_RULES
 } = window.CATALOG_DATA;
 
+// ─── Apps Script (Plaquette Google Slides) ───────────────────
+// Déployez project/Code.gs comme "Application Web" sur script.google.com
+// puis collez l'URL de déploiement ici (se termine par /exec)
+const APPS_SCRIPT_URL = '';
+
 // ─── Helpers ─────────────────────────────────────────────────
 const formatEUR = (n) => {
   if (n === null || n === undefined) return 'Sur devis';
@@ -5640,26 +5645,54 @@ const computeQuote = (state) => {
 };
 
 // ─── TopBar ──────────────────────────────────────────────────
-const TopBar = ({ onExport }) =>
-<header className="topbar" data-screen-label="01 Topbar">
-    <div className="topbar-left">
-      <img src="project/assets/logo-flatchr.svg" alt="Flatchr" />
-      <div className="crumb">
-        <div>
-          <div className="crumb-title">Catalogue Produit</div>
-          <div className="crumb-sub">Sales & CSM · Édition 2026</div>
+const TopBar = ({ onExport, state }) => {
+  const generateSlides = () => {
+    if (!APPS_SCRIPT_URL) {
+      alert('Déployez d\'abord project/Code.gs sur script.google.com et collez l\'URL dans APPS_SCRIPT_URL dans index.html.');
+      return;
+    }
+    const q = computeQuote(state);
+    const effectif = (state.accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS).find(e => e.id === state.effectifId);
+    const accountLabels = { public: 'Collectivité publique', cabinet: 'Cabinet RH', entreprise: 'Entreprise' };
+    const data = {
+      effectifLabel: effectif ? effectif.range + (effectif.label ? ' · ' + effectif.label : '') : '—',
+      accountTypeLabel: accountLabels[state.accountType] || 'Entreprise',
+      packLabel: q.pack ? q.pack.name : 'Socle seul',
+      optionsLabels: [...q.internalItems.map(o => o.name), ...q.externalItems.map(o => o.name)],
+      recurringYear2: q.recurringYear2,
+      firstYearTotal: q.firstYearTotal,
+      oneShotTotal: q.oneShotTotal,
+      tierYear1Saving: q.tierYear1Saving,
+      splitYears: q.splitYears,
+      monthsCount: q.monthsCount,
+      extendedMonths: q.extendedMonths,
+    };
+    const url = APPS_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(data));
+    window.open(url, '_blank', 'noopener');
+  };
+
+  return (
+    <header className="topbar" data-screen-label="01 Topbar">
+      <div className="topbar-left">
+        <img src="project/assets/logo-flatchr.svg" alt="Flatchr" />
+        <div className="crumb">
+          <div>
+            <div className="crumb-title">Catalogue Produit</div>
+            <div className="crumb-sub">Sales & CSM · Édition 2026</div>
+          </div>
         </div>
       </div>
-    </div>
-    <div className="topbar-right">
-      <button className="btn btn-ghost btn-sm" onClick={onExport}>
-        <span className="ico">file_download</span>Exporter en PDF
-      </button>
-      <a href="project/uploads/Plaquette Sales 2026 (1) (1).pdf" className="btn btn-primary" target="_blank" rel="noopener">
-        <span className="ico">menu_book</span>Plaquette commerciale
-      </a>
-    </div>
-  </header>;
+      <div className="topbar-right">
+        <button className="btn btn-ghost btn-sm" onClick={onExport}>
+          <span className="ico">file_download</span>Exporter en PDF
+        </button>
+        <button className="btn btn-primary" onClick={generateSlides}>
+          <span className="ico">slideshow</span>Plaquette commerciale
+        </button>
+      </div>
+    </header>
+  );
+};
 
 
 // ─── Configuration Panel (left, hideable) ───────────────────
@@ -7016,7 +7049,7 @@ const App = () => {
 
   return (
     <>
-      <TopBar onExport={() => setExportOpen(true)} />
+      <TopBar onExport={() => setExportOpen(true)} state={state} />
       <ConfigPanel state={state} actions={actions} collapsed={panelCollapsed} />
       <div className={'app-shell' + (panelCollapsed ? ' panel-collapsed' : '')}>
         <main className="content">

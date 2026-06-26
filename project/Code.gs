@@ -1,26 +1,32 @@
 // ============================================================
-// Catalogue Produit Flatchr — Google Apps Script
+// Catalogue Produit Flatchr — Google Apps Script  VERSION 4
 // ============================================================
 
 var TEMPLATE_ID = '1cfJ6niqBmTtSihNdNnKwIdweT3OZUaeCIStQ4eslFMY';
 
 function doGet(e) {
-  var log = [];
+  var log = ['=== VERSION 4 - API REST ==='];
   var fileId = null, fileUrl = null;
   try {
     if (!e.parameter || !e.parameter.data) throw new Error('Parametre data manquant.');
     var data = JSON.parse(e.parameter.data);
-    log.push('Data parsed OK');
+    log.push('Data OK: ' + data.effectifLabel + ' / ' + data.packLabel);
+
     var result = generatePresentation(data, log);
     fileId = result.id;
     fileUrl = result.url;
+
     return HtmlService.createHtmlOutput(
       '<html><head>' +
-      '<style>body{font-family:sans-serif;background:#f0f4ff;padding:40px} pre{background:#f8f8f8;padding:12px;border-radius:4px;font-size:12px;white-space:pre-wrap}</style>' +
-      '</head><body>' +
+      '<style>body{font-family:sans-serif;background:#f0f4ff;padding:40px}' +
+      'pre{background:#f8f8f8;padding:12px;border-radius:4px;font-size:12px;white-space:pre-wrap}' +
+      '.v{display:inline-block;background:green;color:#fff;padding:4px 12px;border-radius:4px;font-weight:bold;margin-bottom:16px}' +
+      'a.btn{display:inline-block;background:#0a2e5c;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px}' +
+      '</style></head><body>' +
+      '<span class="v">VERSION 4</span>' +
       '<h2 style="color:#0a2e5c">Plaquette prete !</h2>' +
-      '<p><a href="' + fileUrl + '" style="color:#0a2e5c;font-weight:bold;font-size:18px">&#9654; Ouvrir la presentation</a></p>' +
-      '<hr><p style="color:#666;font-size:13px">Debug log :</p>' +
+      '<p><a class="btn" href="' + fileUrl + '">&#9654; Ouvrir la presentation</a></p>' +
+      '<hr style="margin:24px 0"><p style="color:#666;font-size:13px"><b>Log :</b></p>' +
       '<pre>' + log.join('\n') + '</pre>' +
       '</body></html>'
     );
@@ -37,77 +43,278 @@ function doGet(e) {
 }
 
 function generatePresentation(data, log) {
-  var templateFile = DriveApp.getFileById(TEMPLATE_ID);
   var today = new Date();
   var dateStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'dd/MM/yyyy');
-  log.push('Template found');
 
+  var templateFile = DriveApp.getFileById(TEMPLATE_ID);
   var copy = templateFile.makeCopy('Plaquette Flatchr - ' + dateStr);
   var fileId = copy.getId();
-  log.push('Copy created: ' + fileId);
+  log.push('Copie creee: ' + fileId);
 
-  var presentation = SlidesApp.openById(fileId);
-  log.push('Presentation opened, slides: ' + presentation.getSlides().length);
+  // Ouvrir via SlidesApp pour s'assurer que le scope est present
+  var pres = SlidesApp.openById(fileId);
+  log.push('Slides actuelles: ' + pres.getSlides().length);
 
-  try {
-    addSummarySlide(presentation, data, dateStr, log);
-    log.push('addSummarySlide completed OK');
-  } catch (err) {
-    log.push('ERROR in addSummarySlide: ' + err.message);
-    log.push(err.stack || '');
-  }
-
-  presentation.saveAndClose();
-  log.push('Saved and closed');
+  // Ajouter la slide via API REST (controle total du style)
+  addSummarySlideViaAPI(fileId, data, dateStr, log);
 
   try {
     copy.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    log.push('Sharing set');
+    log.push('Partage OK');
   } catch (e) {
-    log.push('Sharing failed: ' + e.message);
+    log.push('Partage impossible: ' + e.message);
   }
 
   return { id: fileId, url: 'https://docs.google.com/presentation/d/' + fileId + '/edit' };
 }
 
-function addSummarySlide(presentation, data, dateStr, log) {
-  log.push('Appending slide...');
-  var slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
-  log.push('Slide appended');
+function addSummarySlideViaAPI(fileId, data, dateStr, log) {
+  var token = ScriptApp.getOAuthToken();
+  var apiBase = 'https://slides.googleapis.com/v1/presentations/' + fileId;
+  var authHeader = { 'Authorization': 'Bearer ' + token };
 
-  slide.getBackground().setSolidFill('#FFFFFF');
-  log.push('Background white set');
+  // Recuperer la presentation pour connaitre le nombre de slides
+  var getResp = UrlFetchApp.fetch(apiBase, { headers: authHeader, muteHttpExceptions: true });
+  if (getResp.getResponseCode() !== 200) {
+    throw new Error('Impossible de lire la presentation: HTTP ' + getResp.getResponseCode() + ' - ' + getResp.getContentText().substring(0, 200));
+  }
+  var presData = JSON.parse(getResp.getContentText());
+  var numSlides = presData.slides ? presData.slides.length : 0;
+  log.push('Slides existantes: ' + numSlides);
 
-  // Header bar
-  var hdr = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 0, 0, 720, 68);
-  hdr.getFill().setSolidFill('#0A2E5C');
-  hdr.getBorder().setTransparent();
-  log.push('Header rect done');
+  var ts = new Date().getTime().toString();
+  var slideId   = 'slide_' + ts;
+  var hdrRectId = 'hdr_' + ts;
+  var logoId    = 'logo_' + ts;
+  var ttlId     = 'ttl_' + ts;
+  var dateId    = 'dat_' + ts;
 
-  var logo = slide.insertTextBox('FLATCHR', 28, 14, 180, 40);
-  logo.getFill().setTransparent();
-  logo.getBorder().setTransparent();
-  logo.getText().getTextStyle().setBold(true);
-  logo.getText().getTextStyle().setFontSize(20);
-  logo.getText().getTextStyle().setForegroundColor('#FFFFFF');
-  log.push('Logo done');
+  var requests = [];
 
-  var ttl = slide.insertTextBox('Recapitulatif de devis', 210, 18, 300, 30);
-  ttl.getFill().setTransparent();
-  ttl.getBorder().setTransparent();
-  ttl.getText().getTextStyle().setFontSize(13);
-  ttl.getText().getTextStyle().setForegroundColor('#AABBD4');
-  log.push('Title done');
+  // 1. Creer la slide BLANK
+  requests.push({
+    createSlide: {
+      objectId: slideId,
+      insertionIndex: numSlides,
+      slideLayoutReference: { predefinedLayout: 'BLANK' }
+    }
+  });
 
-  var dbox = slide.insertTextBox(dateStr, 570, 22, 120, 24);
-  dbox.getFill().setTransparent();
-  dbox.getBorder().setTransparent();
-  dbox.getText().getTextStyle().setFontSize(10);
-  dbox.getText().getTextStyle().setForegroundColor('#7799BB');
-  log.push('Date done');
+  // 2. Fond blanc
+  requests.push({
+    updatePageProperties: {
+      objectId: slideId,
+      pageProperties: {
+        pageBackgroundFill: {
+          solidFill: { color: { rgbColor: { red: 1, green: 1, blue: 1 } } }
+        }
+      },
+      fields: 'pageBackgroundFill'
+    }
+  });
 
-  // Build rows
-  log.push('Building rows...');
+  // 3. Rectangle header bleu
+  requests.push({
+    createShape: {
+      objectId: hdrRectId,
+      shapeType: 'RECTANGLE',
+      elementProperties: {
+        pageObjectId: slideId,
+        size: { width: { magnitude: 720, unit: 'PT' }, height: { magnitude: 68, unit: 'PT' } },
+        transform: { scaleX: 1, scaleY: 1, translateX: 0, translateY: 0, unit: 'PT' }
+      }
+    }
+  });
+  requests.push({
+    updateShapeProperties: {
+      objectId: hdrRectId,
+      shapeProperties: {
+        shapeBackgroundFill: {
+          solidFill: { color: { rgbColor: { red: 0.039, green: 0.180, blue: 0.361 } } }
+        },
+        outline: { propertyState: 'NOT_RENDERED' }
+      },
+      fields: 'shapeBackgroundFill,outline'
+    }
+  });
+
+  // 4. Logo FLATCHR
+  requests.push({
+    createShape: {
+      objectId: logoId,
+      shapeType: 'TEXT_BOX',
+      elementProperties: {
+        pageObjectId: slideId,
+        size: { width: { magnitude: 180, unit: 'PT' }, height: { magnitude: 40, unit: 'PT' } },
+        transform: { scaleX: 1, scaleY: 1, translateX: 28, translateY: 14, unit: 'PT' }
+      }
+    }
+  });
+  requests.push({ insertText: { objectId: logoId, insertionIndex: 0, text: 'FLATCHR' } });
+  requests.push({
+    updateTextStyle: {
+      objectId: logoId,
+      style: {
+        bold: true,
+        fontSize: { magnitude: 20, unit: 'PT' },
+        foregroundColor: { opaqueColor: { rgbColor: { red: 1, green: 1, blue: 1 } } }
+      },
+      textRange: { type: 'ALL' },
+      fields: 'bold,fontSize,foregroundColor'
+    }
+  });
+
+  // 5. Titre
+  requests.push({
+    createShape: {
+      objectId: ttlId,
+      shapeType: 'TEXT_BOX',
+      elementProperties: {
+        pageObjectId: slideId,
+        size: { width: { magnitude: 300, unit: 'PT' }, height: { magnitude: 30, unit: 'PT' } },
+        transform: { scaleX: 1, scaleY: 1, translateX: 210, translateY: 19, unit: 'PT' }
+      }
+    }
+  });
+  requests.push({ insertText: { objectId: ttlId, insertionIndex: 0, text: 'Recapitulatif de devis' } });
+  requests.push({
+    updateTextStyle: {
+      objectId: ttlId,
+      style: {
+        fontSize: { magnitude: 13, unit: 'PT' },
+        foregroundColor: { opaqueColor: { rgbColor: { red: 0.667, green: 0.733, blue: 0.831 } } }
+      },
+      textRange: { type: 'ALL' },
+      fields: 'fontSize,foregroundColor'
+    }
+  });
+
+  // 6. Date
+  requests.push({
+    createShape: {
+      objectId: dateId,
+      shapeType: 'TEXT_BOX',
+      elementProperties: {
+        pageObjectId: slideId,
+        size: { width: { magnitude: 120, unit: 'PT' }, height: { magnitude: 24, unit: 'PT' } },
+        transform: { scaleX: 1, scaleY: 1, translateX: 570, translateY: 23, unit: 'PT' }
+      }
+    }
+  });
+  requests.push({ insertText: { objectId: dateId, insertionIndex: 0, text: dateStr } });
+  requests.push({
+    updateTextStyle: {
+      objectId: dateId,
+      style: {
+        fontSize: { magnitude: 10, unit: 'PT' },
+        foregroundColor: { opaqueColor: { rgbColor: { red: 0.467, green: 0.600, blue: 0.733 } } }
+      },
+      textRange: { type: 'ALL' },
+      fields: 'fontSize,foregroundColor'
+    }
+  });
+
+  // 7. Lignes de contenu
+  var rows = buildRows(data);
+  log.push('Lignes contenu: ' + rows.length);
+  var yPos = 82;
+
+  for (var r = 0; r < rows.length; r++) {
+    var label = rows[r][0];
+    var value = rows[r][1];
+
+    if (!label && !value) {
+      yPos += 10;
+      continue;
+    }
+
+    var isTotal = label.indexOf('TOTAL') === 0;
+    var fSize   = isTotal ? 12 : 11;
+    var isBold  = isTotal;
+    var rgb     = isTotal
+      ? { red: 0.039, green: 0.180, blue: 0.361 }
+      : { red: 0.15, green: 0.15, blue: 0.15 };
+
+    var lId = 'l' + ts + '_' + r;
+    var vId = 'v' + ts + '_' + r;
+
+    // Colonne gauche (libelle)
+    requests.push({
+      createShape: {
+        objectId: lId,
+        shapeType: 'TEXT_BOX',
+        elementProperties: {
+          pageObjectId: slideId,
+          size: { width: { magnitude: 370, unit: 'PT' }, height: { magnitude: 24, unit: 'PT' } },
+          transform: { scaleX: 1, scaleY: 1, translateX: 36, translateY: yPos, unit: 'PT' }
+        }
+      }
+    });
+    requests.push({ insertText: { objectId: lId, insertionIndex: 0, text: label } });
+    requests.push({
+      updateTextStyle: {
+        objectId: lId,
+        style: { bold: isBold, fontSize: { magnitude: fSize, unit: 'PT' }, foregroundColor: { opaqueColor: { rgbColor: rgb } } },
+        textRange: { type: 'ALL' },
+        fields: 'bold,fontSize,foregroundColor'
+      }
+    });
+
+    // Colonne droite (valeur)
+    requests.push({
+      createShape: {
+        objectId: vId,
+        shapeType: 'TEXT_BOX',
+        elementProperties: {
+          pageObjectId: slideId,
+          size: { width: { magnitude: 270, unit: 'PT' }, height: { magnitude: 24, unit: 'PT' } },
+          transform: { scaleX: 1, scaleY: 1, translateX: 414, translateY: yPos, unit: 'PT' }
+        }
+      }
+    });
+    requests.push({ insertText: { objectId: vId, insertionIndex: 0, text: value } });
+    requests.push({
+      updateTextStyle: {
+        objectId: vId,
+        style: { bold: isBold, fontSize: { magnitude: fSize, unit: 'PT' }, foregroundColor: { opaqueColor: { rgbColor: rgb } } },
+        textRange: { type: 'ALL' },
+        fields: 'bold,fontSize,foregroundColor'
+      }
+    });
+    requests.push({
+      updateParagraphStyle: {
+        objectId: vId,
+        style: { alignment: 'END' },
+        textRange: { type: 'ALL' },
+        fields: 'alignment'
+      }
+    });
+
+    yPos += 26;
+  }
+
+  log.push('Requetes API: ' + requests.length);
+
+  var resp = UrlFetchApp.fetch(apiBase + ':batchUpdate', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    payload: JSON.stringify({ requests: requests }),
+    muteHttpExceptions: true
+  });
+
+  var code = resp.getResponseCode();
+  log.push('batchUpdate HTTP: ' + code);
+
+  if (code !== 200) {
+    var body = resp.getContentText();
+    log.push('Erreur API: ' + body.substring(0, 600));
+    throw new Error('Slides API batchUpdate echoue: HTTP ' + code);
+  }
+
+  log.push('Slide ajoutee avec succes via REST API!');
+}
+
+function buildRows(data) {
   var rows = [];
   rows.push(['Effectif', clean(data.effectifLabel)]);
   rows.push(['Compte', clean(data.accountTypeLabel)]);
@@ -134,45 +341,12 @@ function addSummarySlide(presentation, data, dateStr, log) {
     }
     rows.push(['TOTAL', fmtP(data.firstYearTotal) + ' euros']);
   }
+
   rows.push(['Duree', data.monthsCount > 0
     ? data.extendedMonths + ' mois (' + data.monthsCount + ' offert' + (data.monthsCount > 1 ? 's' : '') + ')'
     : '12 mois renouvelable']);
 
-  log.push('Rows built: ' + rows.length);
-
-  var numRows = rows.length;
-  var rowH = 28;
-  var tableH = numRows * rowH;
-  log.push('Table dims: ' + numRows + ' rows x 2 cols, left=36 top=82 w=648 h=' + tableH);
-
-  var table = slide.insertTable(numRows, 2, 36, 82, 648, tableH);
-  log.push('Table object created');
-
-  for (var r = 0; r < numRows; r++) {
-    try {
-      var cellL = table.getCell(r, 0);
-      var cellR = table.getCell(r, 1);
-
-      cellL.getText().setText(rows[r][0]);
-      if (rows[r][0]) {
-        cellL.getText().getTextStyle().setForegroundColor('#111111');
-        cellL.getText().getTextStyle().setFontSize(11);
-      }
-
-      cellR.getText().setText(rows[r][1]);
-      if (rows[r][1]) {
-        cellR.getText().getTextStyle().setForegroundColor('#111111');
-        cellR.getText().getTextStyle().setFontSize(11);
-        cellR.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.END);
-      }
-
-      log.push('Row ' + r + ' OK: [' + rows[r][0] + '] | [' + rows[r][1] + ']');
-    } catch (rowErr) {
-      log.push('Row ' + r + ' FAILED: ' + rowErr.message);
-    }
-  }
-
-  log.push('All rows done');
+  return rows;
 }
 
 function clean(s) {

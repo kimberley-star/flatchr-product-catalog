@@ -15,13 +15,13 @@ function doGet(e) {
     fileId = result.id;
     fileUrl = result.url;
     return HtmlService.createHtmlOutput(
-      '<html><head><meta http-equiv="refresh" content="3;url=' + fileUrl + '">' +
-      '<style>body{font-family:sans-serif;background:#f0f4ff;padding:40px} pre{background:#f8f8f8;padding:12px;border-radius:4px;font-size:12px}</style>' +
+      '<html><head>' +
+      '<style>body{font-family:sans-serif;background:#f0f4ff;padding:40px} pre{background:#f8f8f8;padding:12px;border-radius:4px;font-size:12px;white-space:pre-wrap}</style>' +
       '</head><body>' +
       '<h2 style="color:#0a2e5c">Plaquette prete !</h2>' +
-      '<p>Redirection dans 3 secondes...</p>' +
-      '<p><a href="' + fileUrl + '" style="color:#0a2e5c;font-weight:bold">Ouvrir la presentation</a></p>' +
-      '<details><summary style="cursor:pointer;color:#666">Debug log</summary><pre>' + log.join('\n') + '</pre></details>' +
+      '<p><a href="' + fileUrl + '" style="color:#0a2e5c;font-weight:bold;font-size:18px">&#9654; Ouvrir la presentation</a></p>' +
+      '<hr><p style="color:#666;font-size:13px">Debug log :</p>' +
+      '<pre>' + log.join('\n') + '</pre>' +
       '</body></html>'
     );
   } catch (err) {

@@ -31,7 +31,6 @@ function doGet(e) {
     return HtmlService.createHtmlOutput(
       '<html><body style="font-family:sans-serif;padding:40px">' +
       '<h2 style="color:red">Erreur</h2><pre>' + err.message + '</pre>' +
-      (fileId ? '<p>ID: ' + fileId + '</p>' : '') +
       (fileUrl ? '<p><a href="' + fileUrl + '">Ouvrir quand meme</a></p>' : '') +
       '</body></html>'
     );
@@ -50,7 +49,7 @@ function generatePresentation(data) {
   try {
     addSummarySlide(presentation, data, dateStr);
   } catch (err) {
-    Logger.log('Erreur addSummarySlide: ' + err.message);
+    Logger.log('Erreur addSummarySlide: ' + err.message + '\n' + err.stack);
   }
 
   presentation.saveAndClose();
@@ -68,7 +67,7 @@ function addSummarySlide(presentation, data, dateStr) {
   var slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
   slide.getBackground().setSolidFill('#FFFFFF');
 
-  // Header
+  // ── Header (fonctionne) ────────────────────────────────────
   var hdr = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 0, 0, 720, 68);
   hdr.getFill().setSolidFill('#0A2E5C');
   hdr.getBorder().setTransparent();
@@ -76,87 +75,87 @@ function addSummarySlide(presentation, data, dateStr) {
   var logo = slide.insertTextBox('FLATCHR', 28, 14, 180, 40);
   logo.getFill().setTransparent();
   logo.getBorder().setTransparent();
-  var ls = logo.getText().getTextStyle();
-  ls.setBold(true);
-  ls.setFontSize(20);
-  ls.setForegroundColor('#FFFFFF');
+  logo.getText().getTextStyle().setBold(true);
+  logo.getText().getTextStyle().setFontSize(20);
+  logo.getText().getTextStyle().setForegroundColor('#FFFFFF');
 
   var ttl = slide.insertTextBox('Recapitulatif de devis', 210, 18, 300, 30);
   ttl.getFill().setTransparent();
   ttl.getBorder().setTransparent();
-  var ts = ttl.getText().getTextStyle();
-  ts.setFontSize(13);
-  ts.setForegroundColor('#AABBD4');
+  ttl.getText().getTextStyle().setFontSize(13);
+  ttl.getText().getTextStyle().setForegroundColor('#AABBD4');
 
   var dbox = slide.insertTextBox(dateStr, 570, 22, 120, 24);
   dbox.getFill().setTransparent();
   dbox.getBorder().setTransparent();
-  var ds = dbox.getText().getTextStyle();
-  ds.setFontSize(10);
-  ds.setForegroundColor('#7799BB');
+  dbox.getText().getTextStyle().setFontSize(10);
+  dbox.getText().getTextStyle().setForegroundColor('#7799BB');
 
-  // ── Contenu : une seule grande zone de texte ──────────────────
-  var lines = [];
+  // ── Contenu via TABLE (texte toujours visible) ─────────────
+  // Construire les lignes
+  var rows = [];
 
-  // Configuration
-  lines.push('CONFIGURATION');
-  lines.push('Effectif : ' + clean(data.effectifLabel) );
-  lines.push('Compte : '   + clean(data.accountTypeLabel));
-  lines.push('Pack : '     + clean(data.packLabel));
+  // Section Configuration
+  rows.push(['Effectif', clean(data.effectifLabel)]);
+  rows.push(['Compte', clean(data.accountTypeLabel)]);
+  rows.push(['Pack', clean(data.packLabel)]);
   if (data.optionsLabels && data.optionsLabels.length > 0) {
-    lines.push('Options : ' + data.optionsLabels.map(clean).join(', '));
+    rows.push(['Options', data.optionsLabels.map(clean).join(', ')]);
   }
 
-  lines.push('');
+  // Ligne séparatrice vide
+  rows.push(['', '']);
 
-  // Tarification
-  lines.push('TARIFICATION HT');
+  // Section Tarification
   if (data.splitYears) {
-    lines.push('Abonnement annuel (annee 2+) :  ' + fmtP(data.recurringYear2) + ' euros/an');
+    rows.push(['Abonnement annuel (annee 2+)', fmtP(data.recurringYear2) + ' euros/an']);
     if (data.tierYear1Saving > 0) {
-      lines.push('Remise 1ere annee :  -' + fmtP(data.tierYear1Saving) + ' euros');
+      rows.push(['Remise 1ere annee', '- ' + fmtP(data.tierYear1Saving) + ' euros']);
     }
     if (data.oneShotTotal > 0) {
-      lines.push('Prestations one-shot :  ' + fmtP(data.oneShotTotal) + ' euros');
+      rows.push(['Prestations one-shot', fmtP(data.oneShotTotal) + ' euros']);
     }
-    lines.push('TOTAL 1ere annee :  ' + fmtP(data.firstYearTotal) + ' euros');
-    lines.push('Abonnement annuel (annee 2+) :  ' + fmtP(data.recurringYear2) + ' euros/an');
+    rows.push(['TOTAL 1ere annee', fmtP(data.firstYearTotal) + ' euros']);
+    rows.push(['Abonnement annuel (annee 2+)', fmtP(data.recurringYear2) + ' euros/an']);
   } else {
-    lines.push('Abonnement annuel :  ' + fmtP(data.recurringYear2) + ' euros/an');
+    rows.push(['Abonnement annuel', fmtP(data.recurringYear2) + ' euros/an']);
     if (data.oneShotTotal > 0) {
-      lines.push('Prestations :  ' + fmtP(data.oneShotTotal) + ' euros');
+      rows.push(['Prestations', fmtP(data.oneShotTotal) + ' euros']);
     }
-    lines.push('TOTAL :  ' + fmtP(data.firstYearTotal) + ' euros');
+    rows.push(['TOTAL', fmtP(data.firstYearTotal) + ' euros']);
   }
-  lines.push('Duree :  ' + (data.monthsCount > 0
+
+  rows.push(['Duree', data.monthsCount > 0
     ? data.extendedMonths + ' mois (' + data.monthsCount + ' offert' + (data.monthsCount > 1 ? 's' : '') + ')'
-    : '12 mois renouvelable'));
+    : '12 mois renouvelable']);
 
-  var content = slide.insertTextBox(lines.join('\n'), 36, 85, 648, 295);
-  content.getFill().setTransparent();
-  content.getBorder().setTransparent();
-  var cs = content.getText().getTextStyle();
-  cs.setFontSize(13);
-  cs.setForegroundColor('#222222');
+  var numRows = rows.length;
+  var rowH = Math.min(28, Math.floor(300 / numRows));
+  var tableH = numRows * rowH;
 
-  // Footer
-  var foot = slide.insertTextBox('Flatchr - Tous prix HT - Devis valable 30 jours - ' + dateStr, 36, 390, 648, 18);
-  foot.getFill().setTransparent();
-  foot.getBorder().setTransparent();
-  var fs = foot.getText().getTextStyle();
-  fs.setFontSize(8);
-  fs.setForegroundColor('#AAAAAA');
+  // Insérer le tableau
+  var table = slide.insertTable(numRows, 2, 36, 82, 648, tableH);
+
+  for (var r = 0; r < numRows; r++) {
+    var cellL = table.getCell(r, 0);
+    var cellR = table.getCell(r, 1);
+
+    cellL.getText().setText(rows[r][0]);
+    cellR.getText().setText(rows[r][1]);
+
+    // Alignement droite pour la colonne valeur
+    cellR.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.END);
+  }
 }
 
 function clean(s) {
   if (!s) return '-';
-  // Remplace les caracteres speciaux typographiques par des equivalents ASCII
   return String(s)
-    .replace(/—/g, '-')   // em dash
-    .replace(/–/g, '-')   // en dash
-    .replace(/·/g, '.')   // middle dot
-    .replace(/’/g, "'")   // right single quote
-    .replace(/‘/g, "'");  // left single quote
+    .replace(/—/g, '-')
+    .replace(/–/g, '-')
+    .replace(/·/g, '.')
+    .replace(/’/g, "'")
+    .replace(/‘/g, "'");
 }
 
 function fmtP(n) {

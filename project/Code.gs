@@ -1,17 +1,5 @@
 // ============================================================
 // Catalogue Produit Flatchr — Google Apps Script
-// Génération automatique de plaquette commerciale
-//
-// DÉPLOIEMENT :
-// 1. Allez sur https://script.google.com et créez un nouveau projet
-// 2. Collez ce code dans l'éditeur (remplacez le contenu par défaut)
-// 3. Cliquez sur "Déployer" > "Nouveau déploiement"
-// 4. Type : Application Web
-//    - Exécuter en tant que : Moi (votre compte Google)
-//    - Qui a accès : Tout le monde
-// 5. Cliquez sur "Déployer" et autorisez les permissions demandées
-// 6. Copiez l'URL de déploiement (finit par /exec)
-// 7. Collez cette URL dans la constante APPS_SCRIPT_URL de index.html
 // ============================================================
 
 var TEMPLATE_ID = '1cfJ6niqBmTtSihNdNnKwIdweT3OZUaeCIStQ4eslFMY';
@@ -21,7 +9,7 @@ function doGet(e) {
   var fileUrl = null;
   try {
     if (!e.parameter || !e.parameter.data) {
-      throw new Error('Paramètre "data" manquant dans la requête.');
+      throw new Error('Parametre data manquant.');
     }
     var data = JSON.parse(e.parameter.data);
     var result = generatePresentation(data);
@@ -29,28 +17,22 @@ function doGet(e) {
     fileUrl = result.url;
 
     return HtmlService.createHtmlOutput(
-      '<html><head>' +
-      '<meta http-equiv="refresh" content="2;url=' + fileUrl + '">' +
-      '<style>' +
-      'body{font-family:sans-serif;background:#f0f4ff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}' +
-      '.box{background:#fff;border-radius:12px;padding:40px 48px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.1);max-width:480px}' +
+      '<html><head><meta http-equiv="refresh" content="2;url=' + fileUrl + '">' +
+      '<style>body{font-family:sans-serif;background:#f0f4ff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}' +
+      '.box{background:#fff;border-radius:12px;padding:40px 48px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.1)}' +
       'h2{color:#0a2e5c;margin:0 0 12px}p{color:#666;margin:0 0 20px}' +
       'a.btn{display:inline-block;background:#0a2e5c;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600}' +
-      '</style>' +
-      '</head><body><div class="box">' +
-      '<h2>Plaquette prête !</h2>' +
-      '<p>Redirection automatique dans 2 secondes...</p>' +
-      '<a class="btn" href="' + fileUrl + '" target="_self">Ouvrir la présentation &rarr;</a>' +
+      '</style></head><body><div class="box">' +
+      '<h2>Plaquette prete !</h2><p>Redirection dans 2 secondes...</p>' +
+      '<a class="btn" href="' + fileUrl + '">Ouvrir la presentation</a>' +
       '</div></body></html>'
     );
   } catch (err) {
-    var extra = fileUrl ? '<p><a href="' + fileUrl + '">Essayer d\'ouvrir quand même</a></p>' : '';
     return HtmlService.createHtmlOutput(
-      '<html><body style="font-family:sans-serif;padding:40px;max-width:600px">' +
-      '<h2 style="color:#c00">Erreur</h2>' +
-      '<pre style="background:#f5f5f5;padding:16px;border-radius:6px;white-space:pre-wrap">' + err.message + '</pre>' +
-      (fileId ? '<p>ID fichier : <code>' + fileId + '</code></p>' : '') +
-      extra +
+      '<html><body style="font-family:sans-serif;padding:40px">' +
+      '<h2 style="color:red">Erreur</h2><pre>' + err.message + '</pre>' +
+      (fileId ? '<p>ID: ' + fileId + '</p>' : '') +
+      (fileUrl ? '<p><a href="' + fileUrl + '">Ouvrir quand meme</a></p>' : '') +
       '</body></html>'
     );
   }
@@ -60,179 +42,124 @@ function generatePresentation(data) {
   var templateFile = DriveApp.getFileById(TEMPLATE_ID);
   var today = new Date();
   var dateStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'dd/MM/yyyy');
-  var copyName = 'Plaquette Flatchr' +
-    (data.effectifLabel && data.effectifLabel !== '—' ? ' · ' + data.effectifLabel : '') +
-    ' · ' + dateStr;
 
-  var copy = templateFile.makeCopy(copyName);
+  var copy = templateFile.makeCopy('Plaquette Flatchr - ' + dateStr);
   var fileId = copy.getId();
-
   var presentation = SlidesApp.openById(fileId);
+
   try {
     addSummarySlide(presentation, data, dateStr);
   } catch (err) {
-    Logger.log('Erreur slide : ' + err.message + '\n' + err.stack);
+    Logger.log('Erreur addSummarySlide: ' + err.message);
   }
+
   presentation.saveAndClose();
 
   try {
     copy.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  } catch (shareErr) {
-    Logger.log('Partage : ' + shareErr.message);
+  } catch (e) {
+    Logger.log('Partage impossible: ' + e.message);
   }
 
-  return {
-    id: fileId,
-    url: 'https://docs.google.com/presentation/d/' + fileId + '/edit'
-  };
+  return { id: fileId, url: 'https://docs.google.com/presentation/d/' + fileId + '/edit' };
 }
 
 function addSummarySlide(presentation, data, dateStr) {
-  var W = presentation.getPageWidth();
-  var H = presentation.getPageHeight();
-
   var slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
   slide.getBackground().setSolidFill('#FFFFFF');
 
-  // ── Header ─────────────────────────────────────────────────
-  var hdr = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 0, 0, W, 68);
+  // Header
+  var hdr = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 0, 0, 720, 68);
   hdr.getFill().setSolidFill('#0A2E5C');
   hdr.getBorder().setTransparent();
 
   var logo = slide.insertTextBox('FLATCHR', 28, 14, 180, 40);
   logo.getFill().setTransparent();
   logo.getBorder().setTransparent();
-  logo.getText().getTextStyle().setBold(true);
-  logo.getText().getTextStyle().setFontSize(20);
-  logo.getText().getTextStyle().setForegroundColor('#FFFFFF');
+  var ls = logo.getText().getTextStyle();
+  ls.setBold(true);
+  ls.setFontSize(20);
+  ls.setForegroundColor('#FFFFFF');
 
-  var ttl = slide.insertTextBox('Récapitulatif de devis', W / 2 - 150, 18, 300, 30);
+  var ttl = slide.insertTextBox('Recapitulatif de devis', 210, 18, 300, 30);
   ttl.getFill().setTransparent();
   ttl.getBorder().setTransparent();
-  ttl.getText().getTextStyle().setFontSize(13);
-  ttl.getText().getTextStyle().setForegroundColor('#AABBD4');
-  ttl.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.CENTER);
+  var ts = ttl.getText().getTextStyle();
+  ts.setFontSize(13);
+  ts.setForegroundColor('#AABBD4');
 
-  var dt = slide.insertTextBox(dateStr, W - 150, 22, 130, 24);
-  dt.getFill().setTransparent();
-  dt.getBorder().setTransparent();
-  dt.getText().getTextStyle().setFontSize(10);
-  dt.getText().getTextStyle().setForegroundColor('#7799BB');
-  dt.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.RIGHT);
+  var dbox = slide.insertTextBox(dateStr, 570, 22, 120, 24);
+  dbox.getFill().setTransparent();
+  dbox.getBorder().setTransparent();
+  var ds = dbox.getText().getTextStyle();
+  ds.setFontSize(10);
+  ds.setForegroundColor('#7799BB');
 
-  // ── Layout variables ────────────────────────────────────────
-  var mx = 36;
-  var y = 80;
-  var colL = Math.round(W * 0.62);
-  var colV = W - mx * 2 - colL;
-  var rh = 28;
+  // ── Contenu : une seule grande zone de texte ──────────────────
+  var lines = [];
 
-  // ── Section : Configuration ─────────────────────────────────
-  y = insertLabel(slide, 'CONFIGURATION', mx, y, W - mx * 2);
-  y += 6;
-
-  var cfgRows = [
-    ['Effectif', data.effectifLabel || '—'],
-    ['Type de compte', data.accountTypeLabel || '—'],
-    ['Pack', data.packLabel || 'Socle seul']
-  ];
+  // Configuration
+  lines.push('CONFIGURATION');
+  lines.push('Effectif : ' + clean(data.effectifLabel) );
+  lines.push('Compte : '   + clean(data.accountTypeLabel));
+  lines.push('Pack : '     + clean(data.packLabel));
   if (data.optionsLabels && data.optionsLabels.length > 0) {
-    cfgRows.push(['Options', data.optionsLabels.join(', ')]);
-  }
-  for (var i = 0; i < cfgRows.length; i++) {
-    insertRow(slide, cfgRows[i][0], cfgRows[i][1], mx, y, colL, colV, rh, false);
-    y += rh + 3;
+    lines.push('Options : ' + data.optionsLabels.map(clean).join(', '));
   }
 
-  y += 8;
+  lines.push('');
 
-  // Séparateur
-  var sep = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, mx, y, W - mx * 2, 1);
-  sep.getFill().setSolidFill('#D0DDEE');
-  sep.getBorder().setTransparent();
-  y += 10;
-
-  // ── Section : Tarification ─────────────────────────────────
-  y = insertLabel(slide, 'TARIFICATION HT', mx, y, W - mx * 2);
-  y += 6;
-
-  var rows = [];
+  // Tarification
+  lines.push('TARIFICATION HT');
   if (data.splitYears) {
-    rows.push(['Abonnement annuel (dès la 2ème année)', fmtP(data.recurringYear2) + ' € / an', false]);
+    lines.push('Abonnement annuel (annee 2+) :  ' + fmtP(data.recurringYear2) + ' euros/an');
     if (data.tierYear1Saving > 0) {
-      rows.push(['Remise 1ère année (effectif)', '−' + fmtP(data.tierYear1Saving) + ' €', false]);
+      lines.push('Remise 1ere annee :  -' + fmtP(data.tierYear1Saving) + ' euros');
     }
     if (data.oneShotTotal > 0) {
-      rows.push(['Prestations one-shot', fmtP(data.oneShotTotal) + ' €', false]);
+      lines.push('Prestations one-shot :  ' + fmtP(data.oneShotTotal) + ' euros');
     }
-    rows.push(['TOTAL 1ère année', fmtP(data.firstYearTotal) + ' €', true]);
-    rows.push(['Puis dès la 2ème année', fmtP(data.recurringYear2) + ' € / an', false]);
+    lines.push('TOTAL 1ere annee :  ' + fmtP(data.firstYearTotal) + ' euros');
+    lines.push('Abonnement annuel (annee 2+) :  ' + fmtP(data.recurringYear2) + ' euros/an');
   } else {
-    rows.push(['Abonnement annuel', fmtP(data.recurringYear2) + ' € / an', false]);
+    lines.push('Abonnement annuel :  ' + fmtP(data.recurringYear2) + ' euros/an');
     if (data.oneShotTotal > 0) {
-      rows.push(['Prestations one-shot', fmtP(data.oneShotTotal) + ' €', false]);
+      lines.push('Prestations :  ' + fmtP(data.oneShotTotal) + ' euros');
     }
-    rows.push(['TOTAL', fmtP(data.firstYearTotal) + ' €', true]);
+    lines.push('TOTAL :  ' + fmtP(data.firstYearTotal) + ' euros');
   }
-  var dureeLabel = data.monthsCount > 0
+  lines.push('Duree :  ' + (data.monthsCount > 0
     ? data.extendedMonths + ' mois (' + data.monthsCount + ' offert' + (data.monthsCount > 1 ? 's' : '') + ')'
-    : '12 mois · renouvelable annuellement';
-  rows.push(['Durée du contrat', dureeLabel, false]);
+    : '12 mois renouvelable'));
 
-  for (var j = 0; j < rows.length; j++) {
-    insertRow(slide, rows[j][0], rows[j][1], mx, y, colL, colV, rh, rows[j][2]);
-    y += rh + (rows[j][2] ? 5 : 3);
-  }
+  var content = slide.insertTextBox(lines.join('\n'), 36, 85, 648, 295);
+  content.getFill().setTransparent();
+  content.getBorder().setTransparent();
+  var cs = content.getText().getTextStyle();
+  cs.setFontSize(13);
+  cs.setForegroundColor('#222222');
 
-  // ── Footer ──────────────────────────────────────────────────
-  var foot = slide.insertTextBox(
-    'Flatchr · Tous prix HT · Devis valable 30 jours · ' + dateStr,
-    mx, H - 26, W - mx * 2, 20
-  );
+  // Footer
+  var foot = slide.insertTextBox('Flatchr - Tous prix HT - Devis valable 30 jours - ' + dateStr, 36, 390, 648, 18);
   foot.getFill().setTransparent();
   foot.getBorder().setTransparent();
-  foot.getText().getTextStyle().setFontSize(8);
-  foot.getText().getTextStyle().setForegroundColor('#AAAAAA');
-  foot.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.CENTER);
+  var fs = foot.getText().getTextStyle();
+  fs.setFontSize(8);
+  fs.setForegroundColor('#AAAAAA');
 }
 
-// ── Helper : section label ─────────────────────────────────────
-function insertLabel(slide, text, x, y, w) {
-  var box = slide.insertTextBox(text, x, y, w, 20);
-  box.getFill().setTransparent();
-  box.getBorder().setTransparent();
-  box.getText().getTextStyle().setBold(true);
-  box.getText().getTextStyle().setFontSize(8);
-  box.getText().getTextStyle().setForegroundColor('#7799BB');
-  return y + 20;
+function clean(s) {
+  if (!s) return '-';
+  // Remplace les caracteres speciaux typographiques par des equivalents ASCII
+  return String(s)
+    .replace(/—/g, '-')   // em dash
+    .replace(/–/g, '-')   // en dash
+    .replace(/·/g, '.')   // middle dot
+    .replace(/’/g, "'")   // right single quote
+    .replace(/‘/g, "'");  // left single quote
 }
 
-// ── Helper : data row (label left + value right) ───────────────
-function insertRow(slide, label, value, x, y, colL, colV, h, isTotal) {
-  if (isTotal) {
-    var bg = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, x - 6, y - 2, colL + colV + 12, h + 4);
-    bg.getFill().setSolidFill('#EEF3FF');
-    bg.getBorder().setTransparent();
-  }
-
-  var lb = slide.insertTextBox(label, x, y, colL, h);
-  lb.getFill().setTransparent();
-  lb.getBorder().setTransparent();
-  lb.getText().getTextStyle().setFontSize(isTotal ? 11 : 10);
-  lb.getText().getTextStyle().setBold(isTotal ? true : false);
-  lb.getText().getTextStyle().setForegroundColor(isTotal ? '#0A2E5C' : '#444444');
-
-  var vb = slide.insertTextBox(value, x + colL, y, colV, h);
-  vb.getFill().setTransparent();
-  vb.getBorder().setTransparent();
-  vb.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.RIGHT);
-  vb.getText().getTextStyle().setFontSize(isTotal ? 12 : 10);
-  vb.getText().getTextStyle().setBold(isTotal ? true : false);
-  vb.getText().getTextStyle().setForegroundColor(isTotal ? '#0A2E5C' : '#222222');
-}
-
-// ── Helper : format price ──────────────────────────────────────
 function fmtP(n) {
   if (!n) return '0';
-  return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }

@@ -136,14 +136,33 @@ function addSummarySlide(presentation, data, dateStr) {
     }
   }
 
-  // Remise commerciale
-  if (data.discountAmount > 0) {
-    y = lr(slide, y, 'Remise commerciale', '- ' + fmtP(data.discountAmount) + ' euros', 11, WHITE, WHITE);
+  // Remise commerciale (% ou euro)
+  if (data.pctDiscount > 0) {
+    var dLbl = 'Remise commerciale';
+    if (data.discountType === 'percent' && data.discountValue) dLbl += ' (' + data.discountValue + '%)';
+    y = lr(slide, y, dLbl, '- ' + fmtP(data.pctDiscount) + ' euros', 11, WHITE, WHITE);
+  }
+
+  // Reduction association loi 1901
+  if (data.assoc1901Discount > 0) {
+    y = lr(slide, y, 'Reduction asso loi 1901 (-50%)', '- ' + fmtP(data.assoc1901Discount) + ' euros', 11, WHITE, WHITE);
   }
 
   // Abonnement annuel (separateur + ligne resumee)
   sep(slide, y); y += 7;
   y = lr(slide, y, 'Abonnement annuel (des la 2eme annee)', fmtP(data.recurringYear2) + ' euros/an', 10, MUTED, MUTED);
+
+  // Remise effectif -1 cran (1ere annee uniquement)
+  if (data.tierYear1Saving > 0) {
+    var tierLbl = 'Remise effectif -1 cran';
+    if (data.upgradePct) tierLbl += ' (-' + data.upgradePct + '%)';
+    y = lr(slide, y, tierLbl + '  ·  1ere annee seult', '- ' + fmtP(data.tierYear1Saving) + ' euros', 10, MUTED, MUTED);
+  }
+
+  // Mois offerts
+  if (data.monthsCount > 0) {
+    y = lr(slide, y, data.monthsCount + ' mois offert' + (data.monthsCount > 1 ? 's' : '') + '  ·  contrat ' + data.extendedMonths + ' mois', 'Offert', 10, MUTED, MUTED);
+  }
 
   // Prestations one-shot
   if (data.oneShotItems && data.oneShotItems.length > 0) {
@@ -173,9 +192,10 @@ function addSummarySlide(presentation, data, dateStr) {
   tbR(slide, fmtP(data.recurringYear2) + ' euros/an', 416, ty, 268, 18, 10, false, MUTED);
   ty += 20;
 
-  var durStr = data.monthsCount > 0
-    ? data.extendedMonths + ' mois (' + data.monthsCount + ' offert' + (data.monthsCount > 1 ? 's' : '') + ')'
+  var durStr = data.extendedMonths > 12
+    ? 'Contrat ' + data.extendedMonths + ' mois'
     : '12 mois renouvelable';
+  if (data.offeredValue > 0) durStr += '  ·  Prestations offertes : valeur ' + fmtP(data.offeredValue) + ' euros';
   tb(slide, 'Duree : ' + durStr, 36, ty, 648, 16, 9, false, DIM);
 }
 

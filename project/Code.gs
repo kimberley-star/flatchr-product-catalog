@@ -4,6 +4,12 @@
 
 var TEMPLATE_ID = '1cfJ6niqBmTtSihNdNnKwIdweT3OZUaeCIStQ4eslFMY';
 
+var WHITE    = '#FFFFFF';
+var MUTED    = '#AABBD4';
+var DIM      = '#7799BB';
+var SEP_C    = '#3D5A7A';
+var TOTAL_BG = '#1C2E3E';
+
 function doGet(e) {
   var fileId = null, fileUrl = null;
   try {
@@ -14,10 +20,10 @@ function doGet(e) {
     fileUrl = result.url;
     return HtmlService.createHtmlOutput(
       '<html><head>' +
-      '<style>body{font-family:sans-serif;background:#0a2e5c;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}' +
+      '<style>body{font-family:sans-serif;background:#2b435e;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}' +
       '.box{background:#fff;border-radius:12px;padding:40px 48px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.3)}' +
-      'h2{color:#0a2e5c;margin:0 0 12px}p{color:#666;margin:0 0 20px}' +
-      'a.btn{display:inline-block;background:#0a2e5c;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600}' +
+      'h2{color:#2b435e;margin:0 0 12px}p{color:#666;margin:0 0 20px}' +
+      'a.btn{display:inline-block;background:#2b435e;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600}' +
       '</style></head><body><div class="box">' +
       '<h2>Plaquette prete !</h2><p>Cliquez pour ouvrir</p>' +
       '<a class="btn" href="' + fileUrl + '">Ouvrir la presentation</a>' +
@@ -62,115 +68,157 @@ function generatePresentation(data) {
 
 function addSummarySlide(presentation, data, dateStr) {
   var slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
+  slide.getBackground().setSolidFill('#2B435E');
 
-  // Fond bleu marine — le texte blanc du theme sera visible sans forcer la couleur
-  slide.getBackground().setSolidFill('#0A2E5C');
+  // ── HEADER ──────────────────────────────────────────────────
+  tb(slide, 'FLATCHR', 36, 16, 200, 36, 22, true, WHITE);
 
-  // Logo
-  var logo = slide.insertTextBox('FLATCHR', 36, 18, 200, 38);
-  logo.getFill().setTransparent();
-  logo.getBorder().setTransparent();
-  logo.getText().getTextStyle().setBold(true);
-  logo.getText().getTextStyle().setFontSize(22);
-
-  // Titre
-  var ttl = slide.insertTextBox('Recapitulatif de devis', 244, 22, 280, 30);
-  ttl.getFill().setTransparent();
-  ttl.getBorder().setTransparent();
+  var ttl = slide.insertTextBox('Recapitulatif de devis', 244, 20, 276, 28);
+  ttl.getFill().setTransparent(); ttl.getBorder().setTransparent();
   ttl.getText().getTextStyle().setFontSize(12);
   ttl.getText().getTextStyle().setItalic(true);
+  ttl.getText().getTextStyle().setForegroundColor(MUTED);
 
-  // Date
-  var dbox = slide.insertTextBox(dateStr, 572, 26, 118, 20);
-  dbox.getFill().setTransparent();
-  dbox.getBorder().setTransparent();
+  var dbox = slide.insertTextBox(dateStr, 572, 24, 118, 20);
+  dbox.getFill().setTransparent(); dbox.getBorder().setTransparent();
   dbox.getText().getTextStyle().setFontSize(10);
+  dbox.getText().getTextStyle().setForegroundColor(MUTED);
   dbox.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.END);
 
-  // Ligne separatrice
-  var sep = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 36, 66, 648, 1);
-  sep.getFill().setSolidFill('#1E4A8A');
-  sep.getBorder().setTransparent();
+  sep(slide, 64);
 
-  // Lignes de contenu
-  var rows = buildRows(data);
-  var yPos = 78;
-
-  for (var r = 0; r < rows.length; r++) {
-    var label = rows[r][0];
-    var value = rows[r][1];
-
-    if (!label && !value) {
-      yPos += 8;
-      continue;
-    }
-
-    var isTotal = label.indexOf('TOTAL') === 0;
-    var fSize = isTotal ? 13 : 11;
-
-    var lbl = slide.insertTextBox(label, 36, yPos, 380, 24);
-    lbl.getFill().setTransparent();
-    lbl.getBorder().setTransparent();
-    lbl.getText().getTextStyle().setFontSize(fSize);
-    if (isTotal) lbl.getText().getTextStyle().setBold(true);
-
-    var val = slide.insertTextBox(value, 424, yPos, 260, 24);
-    val.getFill().setTransparent();
-    val.getBorder().setTransparent();
-    val.getText().getTextStyle().setFontSize(fSize);
-    if (isTotal) val.getText().getTextStyle().setBold(true);
-    val.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.END);
-
-    yPos += isTotal ? 30 : 24;
+  // ── LIGNE CONFIGURATION ─────────────────────────────────────
+  var parts = [clean(data.effectifLabel), clean(data.accountTypeLabel)];
+  if (data.packLabel && data.packLabel !== 'Socle seul') {
+    var pk = 'Pack ' + data.packLabel;
+    if (data.packDetailLabel) pk += ' (' + clean(data.packDetailLabel) + ')';
+    parts.push(pk);
   }
+  tb(slide, parts.join('  /  '), 36, 74, 648, 18, 10, false, MUTED);
+
+  sep(slide, 93);
+
+  var y = 101;
+
+  // ── TARIFICATION ────────────────────────────────────────────
+  tb(slide, 'TARIFICATION', 36, y, 370, 14, 8, true, DIM);
+  tb(slide, 'HT', 690, y, 24, 14, 7, false, MUTED);
+  y += 18;
+
+  // Socle fonctionnel
+  if (data.soclePrice > 0) {
+    y = lr(slide, y, 'Socle fonctionnel', fmtP(data.soclePrice) + ' euros/an', 11, WHITE, WHITE);
+  }
+
+  // Accompagnement CSM
+  y = lr(slide, y, 'Accompagnement CSM', 'Inclus', 11, WHITE, MUTED);
+
+  // Pack
+  if (data.packPrice > 0) {
+    var packLbl = 'Pack ' + clean(data.packLabel);
+    if (data.packDetailLabel) packLbl += '  ' + clean(data.packDetailLabel);
+    y = lr(slide, y, packLbl, fmtP(data.packPrice) + ' euros/an', 11, WHITE, WHITE);
+  }
+
+  // Options recurrentes internes
+  if (data.recurringInternalItems) {
+    for (var i = 0; i < data.recurringInternalItems.length; i++) {
+      var ri = data.recurringInternalItems[i];
+      if (ri.price > 0) y = lr(slide, y, clean(ri.name), fmtP(ri.price) + ' euros/an', 11, WHITE, WHITE);
+    }
+  }
+
+  // Options recurrentes externes
+  if (data.externalItems) {
+    for (var j = 0; j < data.externalItems.length; j++) {
+      var ei = data.externalItems[j];
+      if (ei.price > 0) y = lr(slide, y, clean(ei.name), fmtP(ei.price) + ' euros/an', 11, WHITE, WHITE);
+    }
+  }
+
+  // Remise commerciale
+  if (data.discountAmount > 0) {
+    y = lr(slide, y, 'Remise commerciale', '- ' + fmtP(data.discountAmount) + ' euros', 11, WHITE, WHITE);
+  }
+
+  // Abonnement annuel (separateur + ligne resumee)
+  sep(slide, y); y += 7;
+  y = lr(slide, y, 'Abonnement annuel (des la 2eme annee)', fmtP(data.recurringYear2) + ' euros/an', 10, MUTED, MUTED);
+
+  // Prestations one-shot
+  if (data.oneShotItems && data.oneShotItems.length > 0) {
+    sep(slide, y); y += 7;
+    for (var k = 0; k < data.oneShotItems.length; k++) {
+      var si = data.oneShotItems[k];
+      if (si.price > 0) y = lr(slide, y, clean(si.name), fmtP(si.price) + ' euros', 11, WHITE, WHITE);
+    }
+    if (data.oneShotTotal > 0) {
+      y = lr(slide, y, 'Prestations 1ere annee', fmtP(data.oneShotTotal) + ' euros', 10, MUTED, MUTED);
+    }
+  }
+
+  // ── TOTAL BOX ───────────────────────────────────────────────
+  y += 8;
+  var boxH = 405 - y;
+  var tBox = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 0, y, 720, boxH);
+  tBox.getFill().setSolidFill(TOTAL_BG);
+  tBox.getBorder().setTransparent();
+
+  var ty = y + 10;
+  tb(slide, 'TOTAL 1ere annee', 36, ty, 370, 26, 14, true, WHITE);
+  tbR(slide, fmtP(data.firstYearTotal) + ' euros', 416, ty, 268, 26, 14, true, WHITE);
+  ty += 30;
+
+  tb(slide, 'puis des la 2eme annee', 36, ty, 370, 18, 10, false, MUTED);
+  tbR(slide, fmtP(data.recurringYear2) + ' euros/an', 416, ty, 268, 18, 10, false, MUTED);
+  ty += 20;
+
+  var durStr = data.monthsCount > 0
+    ? data.extendedMonths + ' mois (' + data.monthsCount + ' offert' + (data.monthsCount > 1 ? 's' : '') + ')'
+    : '12 mois renouvelable';
+  tb(slide, 'Duree : ' + durStr, 36, ty, 648, 16, 9, false, DIM);
 }
 
-function buildRows(data) {
-  var rows = [];
-  rows.push(['Effectif', clean(data.effectifLabel)]);
-  rows.push(['Compte', clean(data.accountTypeLabel)]);
-  rows.push(['Pack', clean(data.packLabel)]);
-  if (data.optionsLabels && data.optionsLabels.length > 0) {
-    rows.push(['Options', data.optionsLabels.map(clean).join(', ')]);
-  }
-  rows.push(['', '']);
+// ── HELPERS ─────────────────────────────────────────────────
 
-  if (data.splitYears) {
-    rows.push(['Abonnement annuel (annee 2+)', fmtP(data.recurringYear2) + ' euros/an']);
-    if (data.tierYear1Saving > 0) {
-      rows.push(['Remise 1ere annee', '- ' + fmtP(data.tierYear1Saving) + ' euros']);
-    }
-    if (data.oneShotTotal > 0) {
-      rows.push(['Prestations one-shot', fmtP(data.oneShotTotal) + ' euros']);
-    }
-    rows.push(['TOTAL 1ere annee', fmtP(data.firstYearTotal) + ' euros']);
-    rows.push(['Abonnement annuel (annee 2+)', fmtP(data.recurringYear2) + ' euros/an']);
-  } else {
-    rows.push(['Abonnement annuel', fmtP(data.recurringYear2) + ' euros/an']);
-    if (data.oneShotTotal > 0) {
-      rows.push(['Prestations', fmtP(data.oneShotTotal) + ' euros']);
-    }
-    rows.push(['TOTAL', fmtP(data.firstYearTotal) + ' euros']);
-  }
+function tb(slide, text, x, y, w, h, size, bold, color) {
+  var box = slide.insertTextBox(text, x, y, w, h);
+  box.getFill().setTransparent();
+  box.getBorder().setTransparent();
+  box.getText().getTextStyle().setFontSize(size || 11);
+  box.getText().getTextStyle().setForegroundColor(color || WHITE);
+  if (bold) box.getText().getTextStyle().setBold(true);
+  return box;
+}
 
-  rows.push(['Duree', data.monthsCount > 0
-    ? data.extendedMonths + ' mois (' + data.monthsCount + ' offert' + (data.monthsCount > 1 ? 's' : '') + ')'
-    : '12 mois renouvelable']);
+function tbR(slide, text, x, y, w, h, size, bold, color) {
+  var box = tb(slide, text, x, y, w, h, size, bold, color);
+  box.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.END);
+  return box;
+}
 
-  return rows;
+function sep(slide, y) {
+  var s = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 36, y, 648, 1);
+  s.getFill().setSolidFill(SEP_C);
+  s.getBorder().setTransparent();
+}
+
+function lr(slide, y, label, value, size, lColor, rColor) {
+  tb(slide, label, 36, y, 370, 20, size, false, lColor);
+  tbR(slide, value, 416, y, 268, 20, size, false, rColor);
+  return y + 20;
 }
 
 function clean(s) {
   if (!s) return '-';
   return String(s)
-    .replace(/—/g, '-')
-    .replace(/–/g, '-')
-    .replace(/·/g, '.')
-    .replace(/'/g, "'")
-    .replace(/'/g, "'");
+    .replace(/[—–]/g, '-')
+    .replace(/[·⋅]/g, '.')
+    .replace(/×/g, 'x')
+    .replace(/[‘’]/g, "'");
 }
 
 function fmtP(n) {
-  if (!n) return '0';
+  if (n == null || isNaN(n)) return '0';
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }

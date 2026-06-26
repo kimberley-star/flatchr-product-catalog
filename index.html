@@ -5654,11 +5654,22 @@ const TopBar = ({ onExport, state }) => {
     const q = computeQuote(state);
     const effectif = (state.accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS).find(e => e.id === state.effectifId);
     const accountLabels = { public: 'Collectivité publique', cabinet: 'Cabinet RH', entreprise: 'Entreprise' };
+    const packDetailLabel = q.pack
+      ? (q.pack.id === 'multi'
+          ? (q.multiAccountQty || 1) + ' entit' + ((q.multiAccountQty || 1) > 1 ? 'es' : 'e') + ' x ' + q.pack.price + ' euros'
+          : '')
+      : '';
     const data = {
       effectifLabel: effectif ? effectif.range + (effectif.label ? ' · ' + effectif.label : '') : '—',
       accountTypeLabel: accountLabels[state.accountType] || 'Entreprise',
       packLabel: q.pack ? q.pack.name : 'Socle seul',
-      optionsLabels: [...q.internalItems.map(o => o.name), ...q.externalItems.map(o => o.name)],
+      packDetailLabel,
+      soclePrice: q.fullSoclePrice != null ? q.fullSoclePrice : (q.soclePrice || 0),
+      packPrice: q.packPrice || 0,
+      recurringInternalItems: (q.recurringInternalItems || []).map(o => ({ name: o.name, price: o.price || 0 })),
+      externalItems: (q.externalItems || []).filter(o => !o.partner).map(o => ({ name: o.name, price: o.price || 0 })),
+      oneShotItems: (q.oneShotItems || []).map(o => ({ name: o.name, price: o.price || 0 })),
+      discountAmount: q.discountAmount || 0,
       recurringYear2: q.recurringYear2,
       firstYearTotal: q.firstYearTotal,
       oneShotTotal: q.oneShotTotal,

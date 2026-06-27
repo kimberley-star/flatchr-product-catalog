@@ -5578,14 +5578,14 @@ const fmtNum = (n) => new Intl.NumberFormat('fr-FR').format(n);
 // ─── Quote engine (shared by config, summary & export) ───────
 const computeQuote = (state) => {
   const {
-    effectifId, accountType, selectedPack, multiAccountQty,
+    effectifId, accountType, selectedPacks, multiAccountQty,
     internal, external, discountValue, discountType, monthsOffered,
     tierUpgrade, offeredPresta, assoc1901
   } = state;
 
   const activeTiers = accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS;
   const effectif = activeTiers.find((e) => e.id === effectifId);
-  const pack = PACKS.find((p) => p.id === selectedPack);
+  const packs = PACKS.filter((p) => (selectedPacks || []).includes(p.id));
   const isCustom = effectif?.custom;
 
   // Remise d'un cran : facturer le palier inférieur (moins cher)
@@ -5598,7 +5598,7 @@ const computeQuote = (state) => {
 
   const fullSoclePrice = isCustom ? null : effectif?.price ?? 0;
   const soclePrice = isCustom ? null : tierDiscountActive ? downgradeTier.price : effectif?.price ?? 0;
-  const packPrice = pack ? pack.id === 'multi' ? pack.price * (multiAccountQty || 1) : pack.price : 0;
+  const packPrice = packs.reduce((sum, p) => sum + (p.id === 'multi' ? p.price * (multiAccountQty || 1) : p.price), 0);
 
   const internalItems = INTERNAL_OPTIONS.filter((o) => internal.includes(o.id));
   const externalItems = EXTERNAL_OPTIONS.filter((o) => external.includes(o.id) && o.price !== null);
@@ -5633,7 +5633,7 @@ const computeQuote = (state) => {
   const splitYears = oneShotTotal > 0 || tierDiscountActive;
 
   return {
-    effectif, pack, isCustom, accountType, multiAccountQty,
+    effectif, packs, isCustom, accountType, multiAccountQty,
     downgradeTier, canUpgrade, tierDiscountActive, downgradeSaving, upgradePct,
     fullSoclePrice, soclePrice, packPrice,
     internalItems, externalItems, oneShotTotal, recurringInternalItems, oneShotItems, recurringInternalTotal,
@@ -5654,16 +5654,17 @@ const TopBar = ({ onExport, state }) => {
     const q = computeQuote(state);
     const effectif = (state.accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS).find(e => e.id === state.effectifId);
     const accountLabels = { public: 'Collectivité publique', cabinet: 'Cabinet RH', entreprise: 'Entreprise' };
-    const packDetailLabel = q.pack
-      ? (q.pack.id === 'multi'
-          ? (q.multiAccountQty || 1) + ' entit' + ((q.multiAccountQty || 1) > 1 ? 'es' : 'e') + ' x ' + q.pack.price + ' euros'
-          : '')
-      : '';
+    const packsItems = (q.packs || []).map(p => ({
+      name: p.name,
+      price: p.id === 'multi' ? p.price * (q.multiAccountQty || 1) : p.price,
+      detail: p.id === 'multi'
+        ? (q.multiAccountQty || 1) + ' entit' + ((q.multiAccountQty || 1) > 1 ? 'es' : 'e') + ' x ' + p.price + ' euros'
+        : ''
+    }));
     const data = {
       effectifLabel: effectif ? effectif.range + (effectif.label ? ' · ' + effectif.label : '') : '—',
       accountTypeLabel: accountLabels[state.accountType] || 'Entreprise',
-      packLabel: q.pack ? q.pack.name : 'Socle seul',
-      packDetailLabel,
+      packsItems,
       soclePrice: q.fullSoclePrice != null ? q.fullSoclePrice : (q.soclePrice || 0),
       packPrice: q.packPrice || 0,
       recurringInternalItems: (q.recurringInternalItems || []).map(o => ({ name: o.name, price: o.price || 0 })),
@@ -5934,7 +5935,7 @@ const QuoteTotals = ({ state }) => {
 const SummaryCard = ({ state, actions }) => {
   const q = computeQuote(state);
   const {
-    effectif, pack, isCustom, accountType, multiAccountQty,
+    effectif, packs, isCustom, accountType, multiAccountQty,
     tierDiscountActive, downgradeTier, fullSoclePrice, soclePrice, packPrice,
     internalItems, externalItems, oneShotTotal, recurringInternalItems, oneShotItems,
     recurringYear2, monthsCount, extendedMonths, firstYearTotal, splitYears
@@ -5972,20 +5973,21 @@ const SummaryCard = ({ state, actions }) => {
             <div className="value" style={{ color: 'var(--color-success-500)' }}>Inclus</div>
           </div>
 
-          {pack &&
-          <div className="price-row">
+          {packs.map(p => {
+            const pPrice = p.id === 'multi' ? p.price * (multiAccountQty || 1) : p.price;
+            return <div key={p.id} className="price-row">
               <div className="label">
-                <span className="ico" style={{ fontSize: 18, color: 'var(--color-primary-400)' }}>{pack.icon}</span>
-                <div><div className="key">Pack {pack.name}</div><div className="meta">{pack.id === 'multi' ? multiAccountQty + ' compte' + (multiAccountQty > 1 ? 's' : '') + ' × ' + formatEUR(pack.price) : 'Pack stratégique'}</div></div>
+                <span className="ico" style={{ fontSize: 18, color: 'var(--color-primary-400)' }}>{p.icon}</span>
+                <div><div className="key">Pack {p.name}</div><div className="meta">{p.id === 'multi' ? multiAccountQty + ' compte' + (multiAccountQty > 1 ? 's' : '') + ' × ' + formatEUR(p.price) : 'Pack stratégique'}</div></div>
               </div>
               <div className="value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {formatEUR(packPrice)}
-                <button className="remove-btn" onClick={() => actions.setPack(null)} aria-label="Retirer"><span className="ico">close</span></button>
+                {formatEUR(pPrice)}
+                <button className="remove-btn" onClick={() => actions.removePack(p.id)} aria-label="Retirer"><span className="ico">close</span></button>
               </div>
-            </div>
-          }
+            </div>;
+          })}
 
-          {internalItems.length === 0 && externalItems.length === 0 && !pack && !effectif &&
+          {internalItems.length === 0 && externalItems.length === 0 && packs.length === 0 && !effectif &&
           <div className="empty-state">Sélectionnez l'effectif, des packs et options pour composer le devis.</div>
           }
 
@@ -6188,7 +6190,7 @@ const CSMSection = ({ onOpen }) =>
 
 
 // ─── Packs Section ───────────────────────────────────────────
-const PacksSection = ({ selectedPack, onSelect, onOpen, multiAccountQty, onMultiQty }) =>
+const PacksSection = ({ selectedPacks, onSelect, onOpen, multiAccountQty, onMultiQty }) =>
 <section className="section" id="packs" data-screen-label="04 Packs">
     <SectionHead
     label="Modules optionnels"
@@ -6199,7 +6201,7 @@ const PacksSection = ({ selectedPack, onSelect, onOpen, multiAccountQty, onMulti
       {PACKS.map((pack) =>
     <div
       key={pack.id}
-      className={`pack-card ${pack.color}${selectedPack === pack.id ? ' selected' : ''}`}
+      className={`pack-card ${pack.color}${selectedPacks.includes(pack.id) ? ' selected' : ''}`}
       onClick={() => onOpen(pack)} style={{ backgroundColor: "rgb(255, 255, 255)" }}>
       
           <div className="pack-icon" style={{ color: "rgb(255, 255, 255)", backgroundColor: "rgb(1, 155, 178)" }}><span className="ico">{pack.icon}</span></div>
@@ -6224,8 +6226,8 @@ const PacksSection = ({ selectedPack, onSelect, onOpen, multiAccountQty, onMulti
             </div>
           </div>
       }
-          <div className="pack-cta" onClick={(e) => {e.stopPropagation();onSelect(selectedPack === pack.id ? null : pack.id);}}>
-            {selectedPack === pack.id ? '✓ Sélectionné — retirer' : 'Ajouter au devis'}
+          <div className="pack-cta" onClick={(e) => {e.stopPropagation();onSelect(pack.id);}}>
+            {selectedPacks.includes(pack.id) ? '✓ Sélectionné — retirer' : 'Ajouter au devis'}
           </div>
         </div>
     )}
@@ -6687,7 +6689,7 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
   const { accountType, multiAccountQty, discountValue, discountType, monthsOffered } = state;
   const q = computeQuote(state);
   const {
-    pack, isCustom, downgradeTier, tierDiscountActive, downgradeSaving, upgradePct,
+    packs, isCustom, downgradeTier, tierDiscountActive, downgradeSaving, upgradePct,
     fullSoclePrice, soclePrice, packPrice, internalItems, externalItems, oneShotTotal,
     recurringInternalItems, oneShotItems,
     offeredItems, offeredValue, pctDiscount, assoc1901Discount, discountAmount,
@@ -6757,21 +6759,21 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
             <p className="exd-lead">Un Customer Success Manager dédié à vos côtés sur l\u2019année complète : structuration, suivi régulier, bilan stratégique.</p>
           </section>
 
-          {/* ─── Section : Pack ─── */}
-          {pack &&
-          <section className="exd-section">
+          {/* ─── Section : Packs ─── */}
+          {packs.map(p =>
+          <section key={p.id} className="exd-section">
               <div className="exd-section-head">
-                <h2>Pack {pack.name}</h2>
+                <h2>Pack {p.name}</h2>
                 <div className="exd-tag exd-tag-primary">Sélectionné</div>
               </div>
-              <p className="exd-lead">{pack.tagline}</p>
+              <p className="exd-lead">{p.tagline}</p>
               <ul className="exd-feature-grid">
-                {pack.features.map((f, i) =>
+                {p.features.map((f, i) =>
               <li key={i}><span className="ico">{f.ico}</span>{f.label}</li>
               )}
               </ul>
             </section>
-          }
+          )}
 
           {/* ─── Section : Prestations Flatchr ─── */}
           {internalItems.length > 0 &&
@@ -6853,15 +6855,16 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                       <td className="exd-meta-cell">Inclus dans le socle</td>
                       <td className="exd-amount exd-included">Inclus</td>
                     </tr>
-                    {pack &&
-                  <tr>
-                        <td>Pack {pack.name}</td>
+                    {packs.map(p => {
+                      const pPrice = p.id === 'multi' ? p.price * (multiAccountQty || 1) : p.price;
+                      return <tr key={p.id}>
+                        <td>Pack {p.name}</td>
                         <td className="exd-meta-cell">
-                          {pack.id === 'multi' ? `${multiAccountQty} entité${multiAccountQty > 1 ? 's' : ''} × ${formatEUR(pack.price)}` : 'Pack stratégique'}
+                          {p.id === 'multi' ? `${multiAccountQty} entité${multiAccountQty > 1 ? 's' : ''} × ${formatEUR(p.price)}` : 'Pack stratégique'}
                         </td>
-                        <td className="exd-amount">{formatEUR(packPrice)} <span>/ an</span></td>
-                      </tr>
-                  }
+                        <td className="exd-amount">{formatEUR(pPrice)} <span>/ an</span></td>
+                      </tr>;
+                    })}
                     {externalItems.map((o) =>
                   <tr key={'r-' + o.id}>
                         <td>{o.name}</td>
@@ -6979,7 +6982,7 @@ const App = () => {
   // ─── State ─────────────────────────────────────────────────
   const [effectifId, setEffectifId] = useState(null); // Aucun socle par défaut
   const [accountType, setAccountType] = useState('standard');
-  const [selectedPack, setSelectedPack] = useState(null);
+  const [selectedPacks, setSelectedPacks] = useState([]);
   const [multiAccountQty, setMultiAccountQty] = useState(5);
   const [internal, setInternal] = useState([]);
   const [external, setExternal] = useState([]);
@@ -6998,7 +7001,8 @@ const App = () => {
   const actions = {
     setEffectif: setEffectifId,
     setAccountType: (type) => { setAccountType(type); setEffectifId(null); },
-    setPack: setSelectedPack,
+    togglePack: (id) => setSelectedPacks(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]),
+    removePack: (id) => setSelectedPacks(prev => prev.filter(x => x !== id)),
     toggleInternal: (id) => setInternal((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]),
     toggleExternal: (id) => setExternal((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]),
     setDiscountValue,
@@ -7011,7 +7015,7 @@ const App = () => {
   };
 
   const state = {
-    effectifId, accountType, selectedPack, multiAccountQty,
+    effectifId, accountType, selectedPacks, multiAccountQty,
     internal, external, discountValue, discountType, monthsOffered,
     tierUpgrade, offeredPresta, assoc1901
   };
@@ -7049,7 +7053,7 @@ const App = () => {
   const handleDrawerToggleSelection = () => {
     if (!drawerContent) return;
     if (drawerContent.type === 'pack') {
-      setSelectedPack(selectedPack === drawerContent.id ? null : drawerContent.id);
+      actions.togglePack(drawerContent.id);
     } else if (drawerContent.type === 'internal') {
       actions.toggleInternal(drawerContent.id);
     } else if (drawerContent.type === 'external') {
@@ -7058,7 +7062,7 @@ const App = () => {
   };
 
   const isDrawerSelected = drawerContent ?
-  drawerContent.type === 'pack' ? selectedPack === drawerContent.id :
+  drawerContent.type === 'pack' ? selectedPacks.includes(drawerContent.id) :
   drawerContent.type === 'internal' ? internal.includes(drawerContent.id) :
   drawerContent.type === 'external' ? external.includes(drawerContent.id) : false :
   false;
@@ -7072,7 +7076,7 @@ const App = () => {
           <SectionNav active={activeSection} onJump={jumpToSection} />
           <SocleSection effectif={effectif} accountType={accountType} onOpen={openSocle} />
           <CSMSection onOpen={openCSM} />
-          <PacksSection selectedPack={selectedPack} onSelect={setSelectedPack} onOpen={openPack} multiAccountQty={multiAccountQty} onMultiQty={setMultiAccountQty} />
+          <PacksSection selectedPacks={selectedPacks} onSelect={actions.togglePack} onOpen={openPack} multiAccountQty={multiAccountQty} onMultiQty={setMultiAccountQty} />
           <InternalSection selected={internal} onToggle={actions.toggleInternal} onOpen={openOption} />
           <ConsomSection />
           <ExternalSection selected={external} onToggle={actions.toggleExternal} onOpen={openOption} />

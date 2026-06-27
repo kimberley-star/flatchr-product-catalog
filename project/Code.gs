@@ -89,10 +89,10 @@ function addSummarySlide(presentation, data, dateStr) {
 
   // ── LIGNE CONFIGURATION ─────────────────────────────────────
   var parts = [clean(data.effectifLabel), clean(data.accountTypeLabel)];
-  if (data.packLabel && data.packLabel !== 'Socle seul') {
-    var pk = 'Pack ' + data.packLabel;
-    if (data.packDetailLabel) pk += ' (' + clean(data.packDetailLabel) + ')';
-    parts.push(pk);
+  if (data.packsItems && data.packsItems.length > 0) {
+    for (var pi = 0; pi < data.packsItems.length; pi++) {
+      parts.push('Pack ' + clean(data.packsItems[pi].name));
+    }
   }
   tb(slide, parts.join('  /  '), 36, 74, 648, 18, 10, false, MUTED);
 
@@ -113,11 +113,16 @@ function addSummarySlide(presentation, data, dateStr) {
   // Accompagnement CSM
   y = lr(slide, y, 'Accompagnement CSM', 'Inclus', 11, WHITE, MUTED);
 
-  // Pack
-  if (data.packPrice > 0) {
-    var packLbl = 'Pack ' + clean(data.packLabel);
-    if (data.packDetailLabel) packLbl += '  ' + clean(data.packDetailLabel);
-    y = lr(slide, y, packLbl, fmtP(data.packPrice) + ' euros/an', 11, WHITE, WHITE);
+  // Packs
+  if (data.packsItems && data.packsItems.length > 0) {
+    for (var qi = 0; qi < data.packsItems.length; qi++) {
+      var pi = data.packsItems[qi];
+      if (pi.price > 0) {
+        var pl = 'Pack ' + clean(pi.name);
+        if (pi.detail) pl += '  ' + clean(pi.detail);
+        y = lr(slide, y, pl, fmtP(pi.price) + ' euros/an', 11, WHITE, WHITE);
+      }
+    }
   }
 
   // Options recurrentes internes

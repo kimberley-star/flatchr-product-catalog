@@ -4,11 +4,16 @@
 
 var TEMPLATE_ID = '1cfJ6niqBmTtSihNdNnKwIdweT3OZUaeCIStQ4eslFMY';
 
+// Palette
 var WHITE    = '#FFFFFF';
-var MUTED    = '#AABBD4';
-var DIM      = '#7799BB';
-var SEP_C    = '#3D5A7A';
+var DARK     = '#1C2E3E';
+var BRAND    = '#2B435E';
+var MUTED    = '#6B85A0';
+var LIGHT    = '#AABBD4';
+var LIGHT_BG = '#EEF2F7';
+var SEP_C    = '#D8E2EE';
 var TOTAL_BG = '#1C2E3E';
+var SUCCESS  = '#1A7A4A';
 
 function doGet(e) {
   var fileId = null, fileUrl = null;
@@ -68,50 +73,54 @@ function generatePresentation(data) {
 
 function addSummarySlide(presentation, data, dateStr) {
   var slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
-  slide.getBackground().setSolidFill('#2B435E');
+  slide.getBackground().setSolidFill(WHITE);
 
-  // ── HEADER ──────────────────────────────────────────────────
-  tb(slide, 'FLATCHR', 36, 16, 200, 36, 22, true, WHITE);
+  // ── HEADER BAR ──────────────────────────────────────────────
+  rect(slide, 0, 0, 720, 52, BRAND);
+  tb(slide, 'FLATCHR', 36, 14, 100, 26, 15, true, WHITE);
 
-  var ttl = slide.insertTextBox('Recapitulatif de devis', 244, 20, 276, 28);
+  var ttl = slide.insertTextBox('Recapitulatif commercial', 148, 17, 280, 20);
   ttl.getFill().setTransparent(); ttl.getBorder().setTransparent();
-  ttl.getText().getTextStyle().setFontSize(12);
+  ttl.getText().getTextStyle().setFontSize(9);
   ttl.getText().getTextStyle().setItalic(true);
-  ttl.getText().getTextStyle().setForegroundColor(MUTED);
+  ttl.getText().getTextStyle().setForegroundColor(LIGHT);
 
-  var dbox = slide.insertTextBox(dateStr, 572, 24, 118, 20);
+  var dbox = slide.insertTextBox(dateStr, 560, 18, 124, 16);
   dbox.getFill().setTransparent(); dbox.getBorder().setTransparent();
-  dbox.getText().getTextStyle().setFontSize(10);
-  dbox.getText().getTextStyle().setForegroundColor(MUTED);
+  dbox.getText().getTextStyle().setFontSize(9);
+  dbox.getText().getTextStyle().setForegroundColor(LIGHT);
   dbox.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.END);
 
-  sep(slide, 64);
-
-  // ── LIGNE CONFIGURATION ─────────────────────────────────────
+  // ── CONFIG STRIP ────────────────────────────────────────────
+  rect(slide, 0, 52, 720, 22, LIGHT_BG);
   var parts = [clean(data.effectifLabel), clean(data.accountTypeLabel)];
   if (data.packsItems && data.packsItems.length > 0) {
-    for (var pi = 0; pi < data.packsItems.length; pi++) {
-      parts.push('Pack ' + clean(data.packsItems[pi].name));
+    for (var p0 = 0; p0 < data.packsItems.length; p0++) {
+      parts.push('Pack ' + clean(data.packsItems[p0].name));
     }
   }
-  tb(slide, parts.join('  /  '), 36, 74, 648, 18, 10, false, MUTED);
+  tb(slide, parts.join('   /   '), 36, 57, 648, 14, 9, false, MUTED);
 
-  sep(slide, 93);
+  // ── SEPARATEUR PLEINE LARGEUR ────────────────────────────────
+  fullSep(slide, 74);
 
-  var y = 101;
+  var y = 80;
 
-  // ── TARIFICATION ────────────────────────────────────────────
-  tb(slide, 'TARIFICATION', 36, y, 370, 14, 8, true, DIM);
-  tb(slide, 'HT', 690, y, 24, 14, 7, false, MUTED);
-  y += 18;
+  // ── EN-TETE COLONNE ─────────────────────────────────────────
+  tb(slide, 'TARIFICATION', 36, y, 370, 12, 7, true, MUTED);
+  tbR(slide, 'MONTANT HT', 416, y, 268, 12, 7, false, LIGHT);
+  y += 12;
+  fullSep(slide, y); y += 8;
+
+  // ── LIGNES DE PRIX ──────────────────────────────────────────
 
   // Socle fonctionnel
   if (data.soclePrice > 0) {
-    y = lr(slide, y, 'Socle fonctionnel', fmtP(data.soclePrice) + ' euros/an', 11, WHITE, WHITE);
+    y = row(slide, y, 'Socle fonctionnel', fmtP(data.soclePrice) + ' EUR/an', DARK, DARK);
   }
 
   // Accompagnement CSM
-  y = lr(slide, y, 'Accompagnement CSM', 'Inclus', 11, WHITE, MUTED);
+  y = row(slide, y, 'Accompagnement CSM', 'Inclus', DARK, SUCCESS);
 
   // Packs
   if (data.packsItems && data.packsItems.length > 0) {
@@ -119,8 +128,8 @@ function addSummarySlide(presentation, data, dateStr) {
       var pi = data.packsItems[qi];
       if (pi.price > 0) {
         var pl = 'Pack ' + clean(pi.name);
-        if (pi.detail) pl += '  ' + clean(pi.detail);
-        y = lr(slide, y, pl, fmtP(pi.price) + ' euros/an', 11, WHITE, WHITE);
+        if (pi.detail) pl += '  -  ' + clean(pi.detail);
+        y = row(slide, y, pl, fmtP(pi.price) + ' EUR/an', DARK, DARK);
       }
     }
   }
@@ -129,99 +138,112 @@ function addSummarySlide(presentation, data, dateStr) {
   if (data.recurringInternalItems) {
     for (var i = 0; i < data.recurringInternalItems.length; i++) {
       var ri = data.recurringInternalItems[i];
-      if (ri.price > 0) y = lr(slide, y, clean(ri.name), fmtP(ri.price) + ' euros/an', 11, WHITE, WHITE);
+      if (ri.price > 0) y = row(slide, y, clean(ri.name), fmtP(ri.price) + ' EUR/an', DARK, DARK);
     }
   }
 
-  // Options recurrentes externes
+  // Options externes
   if (data.externalItems) {
     for (var j = 0; j < data.externalItems.length; j++) {
       var ei = data.externalItems[j];
-      if (ei.price > 0) y = lr(slide, y, clean(ei.name), fmtP(ei.price) + ' euros/an', 11, WHITE, WHITE);
+      if (ei.price > 0) y = row(slide, y, clean(ei.name), fmtP(ei.price) + ' EUR/an', DARK, DARK);
     }
   }
 
-  // Remise commerciale (% ou euro)
+  // Remise commerciale
   if (data.pctDiscount > 0) {
     var dLbl = 'Remise commerciale';
-    if (data.discountType === 'percent' && data.discountValue) dLbl += ' (' + data.discountValue + '%)';
-    y = lr(slide, y, dLbl, '- ' + fmtP(data.pctDiscount) + ' euros', 11, WHITE, WHITE);
+    if (data.discountType === 'percent' && data.discountValue) dLbl += ' (' + data.discountValue + ' %)';
+    y = row(slide, y, dLbl, '- ' + fmtP(data.pctDiscount) + ' EUR', DARK, SUCCESS);
   }
 
-  // Reduction association loi 1901
+  // Reduction asso loi 1901
   if (data.assoc1901Discount > 0) {
-    y = lr(slide, y, 'Reduction asso loi 1901 (-50%)', '- ' + fmtP(data.assoc1901Discount) + ' euros', 11, WHITE, WHITE);
+    y = row(slide, y, 'Reduction asso loi 1901 (-50 %)', '- ' + fmtP(data.assoc1901Discount) + ' EUR', DARK, SUCCESS);
   }
 
-  // Abonnement annuel (separateur + ligne resumee)
-  sep(slide, y); y += 7;
-  y = lr(slide, y, 'Abonnement annuel (des la 2eme annee)', fmtP(data.recurringYear2) + ' euros/an', 10, MUTED, MUTED);
+  // Separateur + abonnement annuel
+  thinSep(slide, y); y += 5;
+  y = rowMuted(slide, y, 'Abonnement annuel  (des la 2eme annee)', fmtP(data.recurringYear2) + ' EUR/an');
 
-  // Remise effectif -1 cran (1ere annee uniquement)
+  // Remise effectif an 1
   if (data.tierYear1Saving > 0) {
-    var tierLbl = 'Remise effectif -1 cran';
-    if (data.upgradePct) tierLbl += ' (-' + data.upgradePct + '%)';
-    y = lr(slide, y, tierLbl + '  ·  1ere annee seult', '- ' + fmtP(data.tierYear1Saving) + ' euros', 10, MUTED, MUTED);
+    var tLbl = 'Remise effectif (-1 cran' + (data.upgradePct ? ', -' + data.upgradePct + ' %' : '') + ')  /  1ere annee';
+    y = rowMuted(slide, y, tLbl, '- ' + fmtP(data.tierYear1Saving) + ' EUR');
   }
 
   // Mois offerts
   if (data.monthsCount > 0) {
-    y = lr(slide, y, data.monthsCount + ' mois offert' + (data.monthsCount > 1 ? 's' : '') + '  ·  contrat ' + data.extendedMonths + ' mois', 'Offert', 10, MUTED, MUTED);
+    y = rowMuted(slide, y, data.monthsCount + ' mois offert' + (data.monthsCount > 1 ? 's' : '') + '  /  contrat ' + data.extendedMonths + ' mois', 'Offert');
   }
 
   // Prestations one-shot
   if (data.oneShotItems && data.oneShotItems.length > 0) {
-    sep(slide, y); y += 7;
+    thinSep(slide, y); y += 5;
     for (var k = 0; k < data.oneShotItems.length; k++) {
       var si = data.oneShotItems[k];
-      if (si.price > 0) y = lr(slide, y, clean(si.name), fmtP(si.price) + ' euros', 11, WHITE, WHITE);
+      if (si.price > 0) y = row(slide, y, clean(si.name), fmtP(si.price) + ' EUR', DARK, DARK);
     }
     if (data.oneShotTotal > 0) {
-      y = lr(slide, y, 'Prestations 1ere annee', fmtP(data.oneShotTotal) + ' euros', 10, MUTED, MUTED);
+      y = rowMuted(slide, y, 'Prestations 1ere annee (non recurrent)', fmtP(data.oneShotTotal) + ' EUR');
     }
   }
 
   // ── TOTAL BOX ───────────────────────────────────────────────
-  y += 8;
+  y += 10;
+  if (y > 328) y = 328; // clamp pour garantir une hauteur minimale du box
   var boxH = 405 - y;
-  var tBox = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 0, y, 720, boxH);
-  tBox.getFill().setSolidFill(TOTAL_BG);
-  tBox.getBorder().setTransparent();
+  rect(slide, 0, y, 720, boxH, TOTAL_BG);
+
+  // Ligne decoupe
+  rect(slide, 36, y + 1, 648, 1, '#2D4A65');
 
   var ty = y + 10;
-  tb(slide, 'TOTAL 1ere annee', 36, ty, 370, 26, 14, true, WHITE);
-  tbR(slide, fmtP(data.firstYearTotal) + ' euros', 416, ty, 268, 26, 14, true, WHITE);
-  ty += 30;
+  tb(slide, 'TOTAL 1ere annee', 36, ty, 340, 26, 14, true, WHITE);
+  tbR(slide, fmtP(data.firstYearTotal) + ' EUR', 380, ty, 304, 26, 14, true, WHITE);
+  ty += 28;
 
-  tb(slide, 'puis des la 2eme annee', 36, ty, 370, 18, 10, false, MUTED);
-  tbR(slide, fmtP(data.recurringYear2) + ' euros/an', 416, ty, 268, 18, 10, false, MUTED);
-  ty += 20;
+  tb(slide, 'puis des la 2eme annee', 36, ty, 340, 16, 9, false, LIGHT);
+  tbR(slide, fmtP(data.recurringYear2) + ' EUR/an', 380, ty, 304, 16, 9, false, LIGHT);
+  ty += 18;
 
+  // Conditions
   var engagementMonths = data.commitment || 12;
-  var durStr = data.extendedMonths > 12
-    ? 'Contrat ' + data.extendedMonths + ' mois  ·  Engagement ' + engagementMonths + ' mois'
-    : 'Engagement ' + engagementMonths + ' mois';
-  if (data.offeredValue > 0) durStr += '  ·  Prestations offertes : valeur ' + fmtP(data.offeredValue) + ' euros';
-  tb(slide, 'Duree : ' + durStr, 36, ty, 648, 16, 9, false, DIM);
-  ty += 16;
-
-  // Paiement amenage
+  var condParts = ['Engagement ' + engagementMonths + ' mois'];
+  if (data.extendedMonths > 12) condParts.push('Contrat ' + data.extendedMonths + ' mois');
   if (data.paymentSchedule && data.paymentSchedule !== 'annual' && data.recurringYear2 > 0) {
     var periods = data.paymentSchedule === 'quarterly' ? 4 : 2;
     var periodName = data.paymentSchedule === 'quarterly' ? 'trimestre' : 'semestre';
     var periodAmt = Math.round(data.recurringYear2 / periods);
-    tb(slide, 'Paiement : ' + (data.paymentSchedule === 'quarterly' ? 'Trimestriel' : 'Semestriel') + '  ·  ' + fmtP(periodAmt) + ' euros / ' + periodName, 36, ty, 648, 16, 9, false, WHITE);
+    condParts.push((data.paymentSchedule === 'quarterly' ? 'Trimestriel' : 'Semestriel') + ' ' + fmtP(periodAmt) + ' EUR/' + periodName);
   }
+  if (data.offeredValue > 0) condParts.push('Geste commercial ' + fmtP(data.offeredValue) + ' EUR');
+  tb(slide, condParts.join('   |   '), 36, ty, 648, 14, 8, false, MUTED);
 }
 
 // ── HELPERS ─────────────────────────────────────────────────
+
+function rect(slide, x, y, w, h, color) {
+  var s = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, x, y, w, h);
+  s.getFill().setSolidFill(color);
+  s.getBorder().setTransparent();
+  return s;
+}
+
+function fullSep(slide, y) {
+  rect(slide, 0, y, 720, 1, SEP_C);
+}
+
+function thinSep(slide, y) {
+  rect(slide, 36, y, 648, 1, SEP_C);
+}
 
 function tb(slide, text, x, y, w, h, size, bold, color) {
   var box = slide.insertTextBox(text, x, y, w, h);
   box.getFill().setTransparent();
   box.getBorder().setTransparent();
-  box.getText().getTextStyle().setFontSize(size || 11);
-  box.getText().getTextStyle().setForegroundColor(color || WHITE);
+  box.getText().getTextStyle().setFontSize(size || 10);
+  box.getText().getTextStyle().setForegroundColor(color || DARK);
   if (bold) box.getText().getTextStyle().setBold(true);
   return box;
 }
@@ -232,16 +254,20 @@ function tbR(slide, text, x, y, w, h, size, bold, color) {
   return box;
 }
 
-function sep(slide, y) {
-  var s = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 36, y, 648, 1);
-  s.getFill().setSolidFill(SEP_C);
-  s.getBorder().setTransparent();
+// Ligne standard (texte fonce + prix a droite)
+function row(slide, y, label, value, lColor, rColor) {
+  tb(slide, label, 36, y, 370, 18, 10, false, lColor || DARK);
+  tbR(slide, value, 416, y, 268, 18, 10, false, rColor || DARK);
+  return y + 18;
 }
 
-function lr(slide, y, label, value, size, lColor, rColor) {
-  tb(slide, label, 36, y, 370, 20, size, false, lColor);
-  tbR(slide, value, 416, y, 268, 20, size, false, rColor);
-  return y + 20;
+// Ligne subtotal (texte mute, italic)
+function rowMuted(slide, y, label, value) {
+  var lBox = tb(slide, label, 36, y, 370, 16, 9, false, MUTED);
+  lBox.getText().getTextStyle().setItalic(true);
+  var rBox = tbR(slide, value, 416, y, 268, 16, 9, false, MUTED);
+  rBox.getText().getTextStyle().setItalic(true);
+  return y + 16;
 }
 
 function clean(s) {
@@ -250,7 +276,14 @@ function clean(s) {
     .replace(/[—–]/g, '-')
     .replace(/[·⋅]/g, '.')
     .replace(/×/g, 'x')
-    .replace(/[‘’]/g, "'");
+    .replace(/['']/g, "'")
+    .replace(/[àâä]/g, 'a')
+    .replace(/[éèêë]/g, 'e')
+    .replace(/[îï]/g, 'i')
+    .replace(/[ôö]/g, 'o')
+    .replace(/[ùûü]/g, 'u')
+    .replace(/[ç]/g, 'c')
+    .replace(/[œ]/g, 'oe');
 }
 
 function fmtP(n) {

@@ -202,6 +202,15 @@ function addSummarySlide(presentation, data, dateStr) {
     : '12 mois renouvelable';
   if (data.offeredValue > 0) durStr += '  ·  Prestations offertes : valeur ' + fmtP(data.offeredValue) + ' euros';
   tb(slide, 'Duree : ' + durStr, 36, ty, 648, 16, 9, false, DIM);
+  ty += 16;
+
+  // Paiement amenage
+  if (data.paymentSchedule && data.paymentSchedule !== 'annual' && data.recurringYear2 > 0) {
+    var periods = data.paymentSchedule === 'quarterly' ? 4 : 2;
+    var periodName = data.paymentSchedule === 'quarterly' ? 'trimestre' : 'semestre';
+    var periodAmt = Math.round(data.recurringYear2 / periods);
+    tb(slide, 'Paiement : ' + (data.paymentSchedule === 'quarterly' ? 'Trimestriel' : 'Semestriel') + '  ·  ' + fmtP(periodAmt) + ' euros / ' + periodName, 36, ty, 648, 16, 9, false, WHITE);
+  }
 }
 
 // ── HELPERS ─────────────────────────────────────────────────

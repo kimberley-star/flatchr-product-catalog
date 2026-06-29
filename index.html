@@ -5693,6 +5693,7 @@ const TopBar = ({ onExport, state }) => {
       splitYears: q.splitYears,
       monthsCount: q.monthsCount,
       extendedMonths: q.extendedMonths,
+      paymentSchedule: state.paymentSchedule || 'annual',
     };
     const url = APPS_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(data));
     window.open(url, '_blank', 'noopener');
@@ -5725,7 +5726,12 @@ const TopBar = ({ onExport, state }) => {
 // ─── Configuration Panel (left, hideable) ───────────────────
 const ConfigPanel = ({ state, actions, collapsed }) => {
   const q = computeQuote(state);
-  const { accountType, discountValue, discountType, monthsOffered, offeredPresta, tierUpgrade, assoc1901 } = state;
+  const { accountType, discountValue, discountType, monthsOffered, paymentSchedule, offeredPresta, tierUpgrade, assoc1901 } = state;
+  const PAYMENT_OPTIONS = [
+    { value: 'annual', label: 'Annuel', meta: 'Facturation annuelle' },
+    { value: 'semi', label: 'Semestriel', meta: 'Facturation semestrielle' },
+    { value: 'quarterly', label: 'Trimestriel', meta: 'Facturation trimestrielle' },
+  ];
   const { effectif, canUpgrade, downgradeTier, tierDiscountActive, upgradePct, offeredItems, recurringSubtotal } = q;
   const [negoOpen, setNegoOpen] = useState(false);
 
@@ -5805,6 +5811,19 @@ const ConfigPanel = ({ state, actions, collapsed }) => {
             <div className="months-chips">
               {[0, 1, 2, 3, 4, 5, 6].map((m) =>
               <button key={m} className={'months-chip' + (Number(monthsOffered) === m ? ' on' : '')} onClick={() => actions.setMonthsOffered(m)}>{m === 0 ? 'Aucun' : m}</button>
+              )}
+            </div>
+          </div>
+
+          {/* Aménagement du paiement */}
+          <div className="months-block">
+            <div className="months-head">
+              <div>Aménagement du paiement</div>
+              <div className="months-meta">{(PAYMENT_OPTIONS.find(o => o.value === (paymentSchedule || 'annual')) || PAYMENT_OPTIONS[0]).meta}</div>
+            </div>
+            <div className="months-chips" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+              {PAYMENT_OPTIONS.map(({ value, label }) =>
+              <button key={value} className={'months-chip' + ((paymentSchedule || 'annual') === value ? ' on' : '')} onClick={() => actions.setPaymentSchedule(value)}>{label}</button>
               )}
             </div>
           </div>
@@ -5899,6 +5918,9 @@ const QuoteTotals = ({ state }) => {
     isCustom, oneShotTotal, recurringYear2, monthsCount, extendedMonths,
     firstYearTotal, splitYears, tierYear1Saving
   } = computeQuote(state);
+  const ps = state.paymentSchedule || 'annual';
+  const periodLabel = ps === 'quarterly' ? 'trimestre' : ps === 'semi' ? 'semestre' : null;
+  const periodAmount = ps === 'quarterly' ? Math.round(recurringYear2 / 4) : ps === 'semi' ? Math.round(recurringYear2 / 2) : null;
   return (
     <div className="total-block">
       <div>
@@ -5935,6 +5957,11 @@ const QuoteTotals = ({ state }) => {
             <div className="total-label">{splitYears ? 'Total 1ère année' : 'Total annuel'}</div>
             <div className="total-value">{fmtNum(firstYearTotal)}<span className="currency"> €</span></div>
             <div className="total-period">{splitYears ? 'puis ' + fmtNum(recurringYear2) + ' € / an dès la 2ème année' : monthsCount > 0 ? 'HT · Contrat de ' + extendedMonths + ' mois' : 'HT · Renouvelable annuellement'}</div>
+            {periodLabel && recurringYear2 > 0 &&
+            <div className="total-period" style={{ marginTop: 6, fontWeight: 600, color: 'var(--color-primary-600)' }}>
+                Facturation {ps === 'quarterly' ? 'trimestrielle' : 'semestrielle'} · {fmtNum(periodAmount)} € / {periodLabel}
+              </div>
+            }
           </>
         }
       </div>
@@ -6709,7 +6736,8 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
 const ExportModal = ({ open, onClose, state, effectif }) => {
   if (!open) return null;
 
-  const { accountType, multiAccountQty, discountValue, discountType, monthsOffered } = state;
+  const { accountType, multiAccountQty, discountValue, discountType, monthsOffered, paymentSchedule } = state;
+  const psLabel = paymentSchedule === 'quarterly' ? 'Trimestrielle' : paymentSchedule === 'semi' ? 'Semestrielle' : 'Annuelle';
   const q = computeQuote(state);
   const {
     packs, isCustom, downgradeTier, tierDiscountActive, downgradeSaving, upgradePct,
@@ -6920,6 +6948,15 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                       <td colSpan={2}>Abonnement annuel{splitYears ? ' · dès la 2ème année' : monthsCount > 0 ? ' · contrat de ' + extendedMonths + ' mois' : ''}</td>
                       <td className="exd-amount">{formatEUR(recurringYear2)} <span>/ an</span></td>
                     </tr>
+                    {paymentSchedule && paymentSchedule !== 'annual' && recurringYear2 > 0 &&
+                    <tr className="exd-discount-row" style={{ background: 'var(--color-primary-50)' }}>
+                      <td style={{ color: 'var(--color-primary-700)', fontWeight: 600 }}>Facturation {psLabel.toLowerCase()}</td>
+                      <td className="exd-meta-cell">Paiement aménagé</td>
+                      <td className="exd-amount" style={{ color: 'var(--color-primary-700)', fontWeight: 600 }}>
+                        {formatEUR(Math.round(recurringYear2 / (paymentSchedule === 'quarterly' ? 4 : 2)))} <span>/ {paymentSchedule === 'quarterly' ? 'trimestre' : 'semestre'}</span>
+                      </td>
+                    </tr>
+                    }
                     {tierYear1Saving > 0 &&
                   <tr className="exd-discount-row">
                         <td>Remise d'un cran d'effectif</td>
@@ -7013,6 +7050,7 @@ const App = () => {
   const [discountValue, setDiscountValue] = useState(0);
   const [discountType, setDiscountType] = useState('percent');
   const [monthsOffered, setMonthsOffered] = useState(0);
+  const [paymentSchedule, setPaymentSchedule] = useState('annual');
   const [drawerContent, setDrawerContent] = useState(null);
   const [activeSection, setActiveSection] = useState('socle');
   const [panelCollapsed, setPanelCollapsed] = useState(true);
@@ -7049,6 +7087,7 @@ const App = () => {
     setDiscountValue,
     setDiscountType,
     setMonthsOffered,
+    setPaymentSchedule,
     setTierUpgrade,
     setAssoc1901,
     toggleOfferedPresta: (id) => setOfferedPresta((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]),
@@ -7058,7 +7097,7 @@ const App = () => {
   const state = {
     effectifId, accountType, selectedPacks, multiAccountQty,
     internal, internalQty, external, discountValue, discountType, monthsOffered,
-    tierUpgrade, offeredPresta, assoc1901
+    paymentSchedule, tierUpgrade, offeredPresta, assoc1901
   };
 
   const effectif = (accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS).find((e) => e.id === effectifId);

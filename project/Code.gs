@@ -15,6 +15,20 @@ var SEP_C    = '#D8E2EE';
 var TOTAL_BG = '#1C2E3E';
 var SUCCESS  = '#1A7A4A';
 
+// Layout constants
+var SLIDE_W  = 720;
+var SLIDE_H  = 405;
+var COL_L    = 36;
+var COL_R    = 416;
+var COL_RW   = 268;
+var HDR_H    = 92;   // y where content rows start
+
+// Max content height for split decisions
+// Single slide: 405 - 92 - 10(gap) - 77(min total box) = 226
+var ONE_MAX    = 226;
+// Slide 1 of 2: 405 - 92 - 25(continuation note) = 288
+var SLIDE1_MAX = 288;
+
 function doGet(e) {
   var fileId = null, fileUrl = null;
   try {
@@ -71,64 +85,58 @@ function generatePresentation(data) {
   return { id: fileId, url: 'https://docs.google.com/presentation/d/' + fileId + '/edit' };
 }
 
+// ── MAIN ENTRY POINT ────────────────────────────────────────
+
 function addSummarySlide(presentation, data, dateStr) {
-  var slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
-  slide.getBackground().setSolidFill(WHITE);
+  var rows = buildRows(data);
+  var totalH = calcH(rows);
 
-  // ── HEADER BAR ──────────────────────────────────────────────
-  rect(slide, 0, 0, 720, 48, BRAND);
-  tb(slide, 'FLATCHR', 36, 12, 120, 26, 15, true, WHITE);
+  if (totalH <= ONE_MAX) {
+    // All content fits on one slide
+    var s = makeSlide(presentation, data, dateStr, null);
+    var y = renderRows(s, rows, 0, rows.length, HDR_H);
+    drawTotalBox(s, data, clampY(y + 10, 268, 328));
+  } else {
+    // Content needs two slides
+    var split = findSplit(rows, SLIDE1_MAX);
 
-  var ttl = slide.insertTextBox('Recapitulatif commercial', 162, 17, 300, 16);
-  ttl.getFill().setTransparent(); ttl.getBorder().setTransparent();
-  ttl.getText().getTextStyle().setFontSize(9);
-  ttl.getText().getTextStyle().setItalic(true);
-  ttl.getText().getTextStyle().setForegroundColor(LIGHT);
+    var s1 = makeSlide(presentation, data, dateStr, '1 / 2');
+    var y1 = renderRows(s1, rows, 0, split, HDR_H);
+    // Continuation note at bottom of slide 1
+    var noteY = Math.max(y1 + 8, 375);
+    tb(s1, 'Suite page 2  >', COL_L, noteY, 648, 10, 7, false, MUTED);
 
-  var dbox = slide.insertTextBox(dateStr, 560, 17, 124, 14);
-  dbox.getFill().setTransparent(); dbox.getBorder().setTransparent();
-  dbox.getText().getTextStyle().setFontSize(9);
-  dbox.getText().getTextStyle().setForegroundColor(LIGHT);
-  dbox.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.END);
-
-  // ── CONFIG STRIP ────────────────────────────────────────────
-  rect(slide, 0, 48, 720, 20, LIGHT_BG);
-  var parts = [clean(data.effectifLabel), clean(data.accountTypeLabel)];
-  if (data.packsItems && data.packsItems.length > 0) {
-    for (var p0 = 0; p0 < data.packsItems.length; p0++) {
-      parts.push('Pack ' + clean(data.packsItems[p0].name));
-    }
+    var s2 = makeSlide(presentation, data, dateStr, '2 / 2');
+    var y2 = renderRows(s2, rows, split, rows.length, HDR_H);
+    drawTotalBox(s2, data, clampY(y2 + 10, 150, 328));
   }
-  tb(slide, parts.join('   /   '), 36, 53, 648, 13, 8, false, MUTED);
+}
 
-  // ── SEPARATEUR PLEINE LARGEUR ────────────────────────────────
-  fullSep(slide, 68);
+// ── BUILD ROW DESCRIPTORS ────────────────────────────────────
+// Returns an array of row objects:
+// { type: 'D'|'S'|'SUB'|'SEP', label, detail, value, lc, rc }
 
-  var y = 74;
-
-  // ── EN-TETE COLONNE ─────────────────────────────────────────
-  tb(slide, 'TARIFICATION', 36, y, 370, 11, 7, true, MUTED);
-  tbR(slide, 'MONTANT HT', 416, y, 268, 11, 7, false, LIGHT);
-  y += 11;
-  fullSep(slide, y);
-  y += 7;
-
-  // ── LIGNES DE PRIX ──────────────────────────────────────────
+function buildRows(data) {
+  var rows = [];
 
   // Socle fonctionnel
   if (data.soclePrice > 0) {
-    y = rowD(slide, y, 'Socle fonctionnel', clean(data.effectifLabel), fmtP(data.soclePrice) + ' EUR/an', DARK, DARK);
+    rows.push({ type: 'D', label: 'Socle fonctionnel', detail: clean(data.effectifLabel),
+                value: fmtP(data.soclePrice) + ' EUR/an', lc: DARK, rc: DARK });
   }
 
   // Accompagnement CSM
-  y = rowD(slide, y, 'Accompagnement CSM', 'Inclus dans le socle', 'Inclus', DARK, SUCCESS);
+  rows.push({ type: 'D', label: 'Accompagnement CSM', detail: 'Inclus dans le socle',
+              value: 'Inclus', lc: DARK, rc: SUCCESS });
 
   // Packs
   if (data.packsItems && data.packsItems.length > 0) {
-    for (var qi = 0; qi < data.packsItems.length; qi++) {
-      var pi = data.packsItems[qi];
+    for (var p = 0; p < data.packsItems.length; p++) {
+      var pi = data.packsItems[p];
       if (pi.price > 0) {
-        y = rowD(slide, y, 'Pack ' + clean(pi.name), pi.detail ? clean(pi.detail) : '', fmtP(pi.price) + ' EUR/an', DARK, DARK);
+        rows.push({ type: 'D', label: 'Pack ' + clean(pi.name),
+                    detail: pi.detail ? clean(pi.detail) : '',
+                    value: fmtP(pi.price) + ' EUR/an', lc: DARK, rc: DARK });
       }
     }
   }
@@ -138,7 +146,9 @@ function addSummarySlide(presentation, data, dateStr) {
     for (var i = 0; i < data.recurringInternalItems.length; i++) {
       var ri = data.recurringInternalItems[i];
       if (ri.price > 0) {
-        y = rowD(slide, y, clean(ri.name), ri.detail ? clean(ri.detail) : '', fmtP(ri.price) + ' EUR/an', DARK, DARK);
+        rows.push({ type: 'D', label: clean(ri.name),
+                    detail: ri.detail ? clean(ri.detail) : '',
+                    value: fmtP(ri.price) + ' EUR/an', lc: DARK, rc: DARK });
       }
     }
   }
@@ -147,7 +157,10 @@ function addSummarySlide(presentation, data, dateStr) {
   if (data.externalItems) {
     for (var j = 0; j < data.externalItems.length; j++) {
       var ei = data.externalItems[j];
-      if (ei.price > 0) y = rowS(slide, y, clean(ei.name), fmtP(ei.price) + ' EUR/an', DARK, DARK);
+      if (ei.price > 0) {
+        rows.push({ type: 'S', label: clean(ei.name),
+                    value: fmtP(ei.price) + ' EUR/an', lc: DARK, rc: DARK });
+      }
     }
   }
 
@@ -155,52 +168,178 @@ function addSummarySlide(presentation, data, dateStr) {
   if (data.pctDiscount > 0) {
     var dLbl = 'Remise commerciale';
     if (data.discountType === 'percent' && data.discountValue) dLbl += ' (' + data.discountValue + ' %)';
-    y = rowS(slide, y, dLbl, '- ' + fmtP(data.pctDiscount) + ' EUR', DARK, SUCCESS);
+    rows.push({ type: 'S', label: dLbl,
+                value: '- ' + fmtP(data.pctDiscount) + ' EUR', lc: DARK, rc: SUCCESS });
   }
 
   // Reduction asso loi 1901
   if (data.assoc1901Discount > 0) {
-    y = rowS(slide, y, 'Reduction asso loi 1901 (-50 %)', '- ' + fmtP(data.assoc1901Discount) + ' EUR', DARK, SUCCESS);
+    rows.push({ type: 'S', label: 'Reduction asso loi 1901 (-50 %)',
+                value: '- ' + fmtP(data.assoc1901Discount) + ' EUR', lc: DARK, rc: SUCCESS });
   }
 
-  // ── SOUS-TOTAUX ──────────────────────────────────────────────
-  thinSep(slide, y + 1);
-  y += 6;
-  y = rowSub(slide, y, 'Abonnement annuel  (des la 2eme annee)', fmtP(data.recurringYear2) + ' EUR/an');
+  // Section separator before subtotals
+  rows.push({ type: 'SEP' });
+
+  // Abonnement annuel (des la 2eme annee)
+  rows.push({ type: 'SUB', label: 'Abonnement annuel  (des la 2eme annee)',
+              value: fmtP(data.recurringYear2) + ' EUR/an' });
 
   // Remise effectif an 1
   if (data.tierYear1Saving > 0) {
     var tLbl = 'Remise effectif (-1 cran' + (data.upgradePct ? ', -' + data.upgradePct + ' %' : '') + ')  /  1ere annee';
-    y = rowSub(slide, y, tLbl, '- ' + fmtP(data.tierYear1Saving) + ' EUR');
+    rows.push({ type: 'SUB', label: tLbl, value: '- ' + fmtP(data.tierYear1Saving) + ' EUR' });
   }
 
   // Mois offerts
   if (data.monthsCount > 0) {
-    y = rowSub(slide, y, data.monthsCount + ' mois offert' + (data.monthsCount > 1 ? 's' : '') + '  /  contrat ' + data.extendedMonths + ' mois', 'Offert');
+    rows.push({ type: 'SUB',
+                label: data.monthsCount + ' mois offert' + (data.monthsCount > 1 ? 's' : '') + '  /  contrat ' + data.extendedMonths + ' mois',
+                value: 'Offert' });
   }
 
   // Prestations one-shot
   if (data.oneShotItems && data.oneShotItems.length > 0) {
-    thinSep(slide, y + 1);
-    y += 6;
+    var hasShot = false;
     for (var k = 0; k < data.oneShotItems.length; k++) {
-      var si = data.oneShotItems[k];
-      if (si.price > 0) {
-        y = si.detail
-          ? rowD(slide, y, clean(si.name), clean(si.detail), fmtP(si.price) + ' EUR', DARK, DARK)
-          : rowS(slide, y, clean(si.name), fmtP(si.price) + ' EUR', DARK, DARK);
-      }
+      if (data.oneShotItems[k].price > 0) { hasShot = true; break; }
     }
-    if (data.oneShotTotal > 0) {
-      y = rowSub(slide, y, 'Prestations 1ere annee (non recurrent)', fmtP(data.oneShotTotal) + ' EUR');
+    if (hasShot) {
+      rows.push({ type: 'SEP' });
+      for (var m = 0; m < data.oneShotItems.length; m++) {
+        var si = data.oneShotItems[m];
+        if (si.price > 0) {
+          if (si.detail) {
+            rows.push({ type: 'D', label: clean(si.name), detail: clean(si.detail),
+                        value: fmtP(si.price) + ' EUR', lc: DARK, rc: DARK });
+          } else {
+            rows.push({ type: 'S', label: clean(si.name),
+                        value: fmtP(si.price) + ' EUR', lc: DARK, rc: DARK });
+          }
+        }
+      }
+      if (data.oneShotTotal > 0) {
+        rows.push({ type: 'SUB', label: 'Prestations 1ere annee (non recurrent)',
+                    value: fmtP(data.oneShotTotal) + ' EUR' });
+      }
     }
   }
 
-  // ── TOTAL BOX ───────────────────────────────────────────────
-  y += 10;
-  if (y < 268) y = 268; // hauteur min du box : ~137px
-  if (y > 328) y = 328; // hauteur max garantie : ~77px
-  var boxH = 405 - y;
+  return rows;
+}
+
+// ── ROW HEIGHT CALCULATOR ────────────────────────────────────
+
+function rowH(row) {
+  if (row.type === 'SEP') return 6;
+  if (row.type === 'SUB') return 12;
+  if (row.type === 'S')   return 17;
+  if (row.type === 'D') {
+    var hasDetail = row.detail && row.detail.trim() !== '' && row.detail !== '-';
+    return hasDetail ? 22 : 17;
+  }
+  return 0;
+}
+
+function calcH(rows) {
+  var h = 0;
+  for (var i = 0; i < rows.length; i++) h += rowH(rows[i]);
+  return h;
+}
+
+// ── FIND SPLIT POINT ─────────────────────────────────────────
+// Returns index of first row to go on slide 2.
+// Avoids splitting at a SEP row.
+
+function findSplit(rows, maxH) {
+  var h = 0;
+  var split = rows.length;
+  for (var i = 0; i < rows.length; i++) {
+    h += rowH(rows[i]);
+    if (h > maxH) {
+      split = i;
+      break;
+    }
+  }
+  // Back up past any trailing SEP rows at the split point
+  while (split > 0 && rows[split - 1].type === 'SEP') split--;
+  // Ensure we don't put everything on slide 2
+  if (split === 0) split = 1;
+  return split;
+}
+
+// ── RENDER ROWS ──────────────────────────────────────────────
+// Renders rows[from..to-1] on slide starting at startY.
+// Returns the y value after the last row.
+
+function renderRows(slide, rows, from, to, startY) {
+  var y = startY;
+  for (var i = from; i < to; i++) {
+    var row = rows[i];
+    if (row.type === 'SEP') {
+      thinSep(slide, y + 1);
+      y += 6;
+    } else if (row.type === 'SUB') {
+      y = rowSub(slide, y, row.label, row.value);
+    } else if (row.type === 'S') {
+      y = rowS(slide, y, row.label, row.value, row.lc, row.rc);
+    } else if (row.type === 'D') {
+      y = rowD(slide, y, row.label, row.detail || '', row.value, row.lc, row.rc);
+    }
+  }
+  return y;
+}
+
+// ── MAKE SLIDE (with header) ─────────────────────────────────
+// pageLabel: null for single slide, '1 / 2' or '2 / 2' for multi
+
+function makeSlide(presentation, data, dateStr, pageLabel) {
+  var slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
+  slide.getBackground().setSolidFill(WHITE);
+
+  // Header bar
+  rect(slide, 0, 0, 720, 48, BRAND);
+  tb(slide, 'FLATCHR', 36, 12, 120, 26, 15, true, WHITE);
+
+  var ttl = slide.insertTextBox('Recapitulatif commercial', 162, 17, 300, 16);
+  ttl.getFill().setTransparent(); ttl.getBorder().setTransparent();
+  ttl.getText().getTextStyle().setFontSize(9);
+  ttl.getText().getTextStyle().setItalic(true);
+  ttl.getText().getTextStyle().setForegroundColor(LIGHT);
+
+  // Date + optional page label on right
+  var headerRight = dateStr + (pageLabel ? '   |   ' + pageLabel : '');
+  var dbox = slide.insertTextBox(headerRight, 480, 17, 204, 14);
+  dbox.getFill().setTransparent(); dbox.getBorder().setTransparent();
+  dbox.getText().getTextStyle().setFontSize(9);
+  dbox.getText().getTextStyle().setForegroundColor(LIGHT);
+  dbox.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.END);
+
+  // Config strip
+  rect(slide, 0, 48, 720, 20, LIGHT_BG);
+  var parts = [clean(data.effectifLabel), clean(data.accountTypeLabel)];
+  if (data.packsItems && data.packsItems.length > 0) {
+    for (var p = 0; p < data.packsItems.length; p++) {
+      parts.push('Pack ' + clean(data.packsItems[p].name));
+    }
+  }
+  tb(slide, parts.join('   /   '), 36, 53, 648, 13, 8, false, MUTED);
+
+  // Full separator + column headers
+  fullSep(slide, 68);
+  var y = 74;
+  tb(slide, 'TARIFICATION', 36, y, 370, 11, 7, true, MUTED);
+  tbR(slide, 'MONTANT HT', 416, y, 268, 11, 7, false, LIGHT);
+  y += 11;
+  fullSep(slide, y);
+
+  return slide;
+}
+
+// ── DRAW TOTAL BOX ───────────────────────────────────────────
+
+function drawTotalBox(slide, data, y) {
+  var boxH = SLIDE_H - y;
   rect(slide, 0, y, 720, boxH, TOTAL_BG);
   rect(slide, 36, y + 1, 648, 1, '#2D4A65');
 
@@ -227,7 +366,13 @@ function addSummarySlide(presentation, data, dateStr) {
   tb(slide, condParts.join('   |   '), 36, ty, 648, 12, 8, false, MUTED);
 }
 
-// ── HELPERS ─────────────────────────────────────────────────
+// ── HELPERS ──────────────────────────────────────────────────
+
+function clampY(y, minY, maxY) {
+  if (y < minY) return minY;
+  if (y > maxY) return maxY;
+  return y;
+}
 
 function rect(slide, x, y, w, h, color) {
   var s = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, x, y, w, h);
@@ -255,36 +400,36 @@ function tbR(slide, text, x, y, w, h, size, bold, color) {
   return box;
 }
 
-// Ligne avec label gras + detail mute optionnel en dessous (21px avec detail, 16px sans)
+// Ligne avec label gras + detail mute optionnel en dessous (22px avec detail, 17px sans)
 function rowD(slide, y, label, detail, value, lColor, rColor) {
   var hasDetail = detail && detail.trim() !== '' && detail !== '-';
   var rowH = hasDetail ? 21 : 16;
-  tb(slide, label, 36, y + 2, 370, 12, 9, true, lColor || DARK);
+  tb(slide, label, COL_L, y + 2, 370, 12, 9, true, lColor || DARK);
   if (hasDetail) {
-    var det = slide.insertTextBox(detail, 36, y + 13, 370, 9);
+    var det = slide.insertTextBox(detail, COL_L, y + 13, 370, 9);
     det.getFill().setTransparent();
     det.getBorder().setTransparent();
     det.getText().getTextStyle().setFontSize(7);
     det.getText().getTextStyle().setForegroundColor(MUTED);
   }
-  tbR(slide, value, 416, y + Math.round((rowH - 12) / 2), 268, 12, 9, false, rColor || DARK);
+  tbR(slide, value, COL_R, y + Math.round((rowH - 12) / 2), COL_RW, 12, 9, false, rColor || DARK);
   thinSep(slide, y + rowH);
   return y + rowH + 1;
 }
 
-// Ligne simple sans detail (16px)
+// Ligne simple sans detail (17px)
 function rowS(slide, y, label, value, lColor, rColor) {
-  tb(slide, label, 36, y + 2, 370, 12, 9, false, lColor || DARK);
-  tbR(slide, value, 416, y + 2, 268, 12, 9, false, rColor || DARK);
+  tb(slide, label, COL_L, y + 2, 370, 12, 9, false, lColor || DARK);
+  tbR(slide, value, COL_R, y + 2, COL_RW, 12, 9, false, rColor || DARK);
   thinSep(slide, y + 16);
   return y + 17;
 }
 
 // Ligne sous-total : italique, mute (12px)
 function rowSub(slide, y, label, value) {
-  var lBox = tb(slide, label, 36, y + 1, 370, 10, 8, false, MUTED);
+  var lBox = tb(slide, label, COL_L, y + 1, 370, 10, 8, false, MUTED);
   lBox.getText().getTextStyle().setItalic(true);
-  var rBox = tbR(slide, value, 416, y + 1, 268, 10, 8, false, MUTED);
+  var rBox = tbR(slide, value, COL_R, y + 1, COL_RW, 10, 8, false, MUTED);
   rBox.getText().getTextStyle().setItalic(true);
   return y + 12;
 }

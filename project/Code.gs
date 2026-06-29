@@ -197,9 +197,10 @@ function addSummarySlide(presentation, data, dateStr) {
   tbR(slide, fmtP(data.recurringYear2) + ' euros/an', 416, ty, 268, 18, 10, false, MUTED);
   ty += 20;
 
+  var engagementMonths = data.commitment || 12;
   var durStr = data.extendedMonths > 12
-    ? 'Contrat ' + data.extendedMonths + ' mois'
-    : '12 mois renouvelable';
+    ? 'Contrat ' + data.extendedMonths + ' mois  ·  Engagement ' + engagementMonths + ' mois'
+    : 'Engagement ' + engagementMonths + ' mois';
   if (data.offeredValue > 0) durStr += '  ·  Prestations offertes : valeur ' + fmtP(data.offeredValue) + ' euros';
   tb(slide, 'Duree : ' + durStr, 36, ty, 648, 16, 9, false, DIM);
   ty += 16;

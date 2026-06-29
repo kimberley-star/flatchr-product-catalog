@@ -236,7 +236,7 @@ function rowH(row) {
   if (row.type === 'S')   return 17;
   if (row.type === 'D') {
     var hasDetail = row.detail && row.detail.trim() !== '' && row.detail !== '-';
-    return hasDetail ? 22 : 17;
+    return hasDetail ? 23 : 18;
   }
   return 0;
 }
@@ -277,7 +277,6 @@ function renderRows(slide, rows, from, to, startY) {
   for (var i = from; i < to; i++) {
     var row = rows[i];
     if (row.type === 'SEP') {
-      thinSep(slide, y + 1);
       y += 6;
     } else if (row.type === 'SUB') {
       y = rowSub(slide, y, row.label, row.value);
@@ -413,15 +412,13 @@ function rowD(slide, y, label, detail, value, lColor, rColor) {
     det.getText().getTextStyle().setForegroundColor(MUTED);
   }
   tbR(slide, value, COL_R, y + Math.round((rowH - 12) / 2), COL_RW, 12, 9, false, rColor || DARK);
-  thinSep(slide, y + rowH);
-  return y + rowH + 1;
+  return y + rowH + 2;
 }
 
 // Ligne simple sans detail (17px)
 function rowS(slide, y, label, value, lColor, rColor) {
   tb(slide, label, COL_L, y + 2, 370, 12, 9, false, lColor || DARK);
   tbR(slide, value, COL_R, y + 2, COL_RW, 12, 9, false, rColor || DARK);
-  thinSep(slide, y + 16);
   return y + 17;
 }
 

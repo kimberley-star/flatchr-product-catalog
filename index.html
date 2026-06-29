@@ -1211,6 +1211,11 @@ body { background: var(--bg-app); color: var(--fg-primary); }
   background: hsla(0, 62%, 50%, 0.08);
   color: hsl(0, 62%, 45%);
 }
+.option-card .option-stepper { display: flex; align-items: center; gap: 4px; background: var(--color-primary-100); border-radius: 8px; padding: 2px 4px; border: 1.5px solid var(--color-primary-300); }
+.option-card .option-stepper button { background: none; border: none; cursor: pointer; padding: 3px; color: var(--color-primary-600); display: flex; border-radius: 4px; }
+.option-card .option-stepper button:hover { background: var(--color-primary-200); }
+.option-card .option-stepper button .ico { font-size: 16px; }
+.option-card .option-stepper > span { font-size: 14px; font-weight: 700; min-width: 22px; text-align: center; color: var(--color-primary-700); }
 .option-card .badge-corner {
   position: absolute;
   top: 14px; right: 14px;
@@ -5200,6 +5205,7 @@ const INTERNAL_OPTIONS = [
     desc: 'Session de formation en présentiel pour former vos managers à Flatchr, sur site.',
     price: 400,
     priceUnit: '/ session (+ frais de déplacement)',
+    quantifiable: true,
     longDesc: 'Une session de 2h en présentiel dédiée à vos managers opérationnels : prise en main de l\'outil, lecture des candidatures, intégration au processus de décision, suivi des KPIs.',
     benefits: [
       'Session 2h en présentiel sur site',
@@ -5216,6 +5222,7 @@ const INTERNAL_OPTIONS = [
     desc: 'Session de formation en visioconférence pour former vos managers à Flatchr, à distance.',
     price: 400,
     priceUnit: '/ session',
+    quantifiable: true,
     longDesc: 'Une session de 2h en visioconférence dédiée à vos managers opérationnels : prise en main de l\'outil, lecture des candidatures, intégration au processus de décision, suivi des KPIs.',
     benefits: [
       'Session 2h en visioconférence',
@@ -5579,7 +5586,7 @@ const fmtNum = (n) => new Intl.NumberFormat('fr-FR').format(n);
 const computeQuote = (state) => {
   const {
     effectifId, accountType, selectedPacks, multiAccountQty,
-    internal, external, discountValue, discountType, monthsOffered,
+    internal, internalQty, external, discountValue, discountType, monthsOffered,
     tierUpgrade, offeredPresta, assoc1901
   } = state;
 
@@ -5600,7 +5607,10 @@ const computeQuote = (state) => {
   const soclePrice = isCustom ? null : tierDiscountActive ? downgradeTier.price : effectif?.price ?? 0;
   const packPrice = packs.reduce((sum, p) => sum + (p.id === 'multi' ? p.price * (multiAccountQty || 1) : p.price), 0);
 
-  const internalItems = INTERNAL_OPTIONS.filter((o) => internal.includes(o.id));
+  const internalItems = INTERNAL_OPTIONS.filter((o) => internal.includes(o.id)).map(o => {
+    const qty = (o.quantifiable && internalQty && internalQty[o.id]) ? internalQty[o.id] : 1;
+    return { ...o, qty, unitPrice: o.price, price: o.price * qty };
+  });
   const externalItems = EXTERNAL_OPTIONS.filter((o) => external.includes(o.id) && o.price !== null);
   const recurringInternalItems = internalItems.filter((o) => o.recurring);
   const oneShotItems = internalItems.filter((o) => !o.recurring);
@@ -5669,7 +5679,7 @@ const TopBar = ({ onExport, state }) => {
       packPrice: q.packPrice || 0,
       recurringInternalItems: (q.recurringInternalItems || []).map(o => ({ name: o.name, price: o.price || 0 })),
       externalItems: (q.externalItems || []).filter(o => !o.partner).map(o => ({ name: o.name, price: o.price || 0 })),
-      oneShotItems: (q.oneShotItems || []).map(o => ({ name: o.name, price: o.price || 0 })),
+      oneShotItems: (q.oneShotItems || []).map(o => ({ name: (o.qty > 1 ? o.qty + 'x ' : '') + o.name, price: o.price || 0 })),
       pctDiscount: q.pctDiscount || 0,
       discountType: q.discountType || '',
       discountValue: q.discountValue || 0,
@@ -6002,17 +6012,21 @@ const SummaryCard = ({ state, actions }) => {
                 <button className="remove-btn" onClick={() => actions.toggleInternal(o.id)} aria-label="Retirer"><span className="ico">close</span></button>
               </div>
             </div>
+
           )}
 
           {oneShotItems.map((o) =>
           <div key={o.id} className="price-row">
               <div className="label">
                 <span className="ico" style={{ fontSize: 18, color: 'var(--color-secondary-300)' }}>{o.icon}</span>
-                <div><div className="key">{o.name}</div><div className="meta">Achat ponctuel · 1ère année</div></div>
+                <div>
+                  <div className="key">{o.name}</div>
+                  <div className="meta">{o.qty > 1 ? o.qty + ' sessions' : 'Achat ponctuel · 1ère année'}</div>
+                </div>
               </div>
               <div className="value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {formatEUR(o.price)}
-                <button className="remove-btn" onClick={() => actions.toggleInternal(o.id)} aria-label="Retirer"><span className="ico">close</span></button>
+                {o.qty > 1 ? <span style={{ fontSize: 12 }}>{o.qty} × {formatEUR(o.unitPrice)}</span> : formatEUR(o.price)}
+                <button className="remove-btn" onClick={() => actions.setInternalQty(o.id, 0)} aria-label="Retirer"><span className="ico">close</span></button>
               </div>
             </div>
           )}
@@ -6236,20 +6250,22 @@ const PacksSection = ({ selectedPacks, onSelect, onOpen, multiAccountQty, onMult
 
 
 // ─── Internal options Section ────────────────────────────────
-const InternalSection = ({ selected, onToggle, onOpen }) =>
+const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty }) =>
 <section className="section" id="interne" data-screen-label="05 Catalogue interne">
     <SectionHead
     label="Catalogue Produit Interne"
     title="Prestations Flatchr"
     sub="Configurations sur-mesure, formations et services techniques réalisés par nos équipes pour accélérer votre mise en route et votre ROI." />
-  
+
     <div className="options-grid">
-      {INTERNAL_OPTIONS.map((o) =>
-    <div
-      key={o.id}
-      className={'option-card' + (selected.includes(o.id) ? ' selected' : '')}
-      onClick={() => onOpen(o, 'internal')}>
-      
+      {INTERNAL_OPTIONS.map((o) => {
+      const qty = (internalQty && internalQty[o.id]) || 1;
+      const isSelected = selected.includes(o.id);
+      return <div
+        key={o.id}
+        className={'option-card' + (isSelected ? ' selected' : '')}
+        onClick={() => onOpen(o, 'internal')}>
+
           <div className="check-mark"><span className="ico">check</span></div>
           <div className="icon-wrap"><span className="ico">{o.icon}</span></div>
           <h4>{o.name}</h4>
@@ -6258,17 +6274,24 @@ const InternalSection = ({ selected, onToggle, onOpen }) =>
             <div className="option-price" style={{ fontSize: "12px" }}>
               {formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span>
             </div>
-            <button
-          className="option-toggle"
-          onClick={(e) => {e.stopPropagation();onToggle(o.id);}}
-          style={{ cursor: 'pointer' }}>
-          
-              {selected.includes(o.id) ? 'Retirer' : 'Ajouter'}
-              <span className="ico">{selected.includes(o.id) ? 'remove_circle_outline' : 'add_circle_outline'}</span>
-            </button>
+            {o.quantifiable && isSelected ? (
+              <div className="option-stepper" onClick={e => e.stopPropagation()}>
+                <button onClick={() => onSetQty(o.id, qty - 1)}><span className="ico">remove</span></button>
+                <span>{qty}</span>
+                <button onClick={() => onSetQty(o.id, qty + 1)}><span className="ico">add</span></button>
+              </div>
+            ) : (
+              <button
+                className="option-toggle"
+                onClick={(e) => {e.stopPropagation(); isSelected ? onSetQty(o.id, 0) : (o.quantifiable ? onSetQty(o.id, 1) : onToggle(o.id));}}
+                style={{ cursor: 'pointer' }}>
+                {isSelected ? 'Retirer' : 'Ajouter'}
+                <span className="ico">{isSelected ? 'remove_circle_outline' : 'add_circle_outline'}</span>
+              </button>
+            )}
           </div>
-        </div>
-    )}
+        </div>;
+    })}
     </div>
   </section>;
 
@@ -6914,7 +6937,7 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                     {oneShotItems.map((o) =>
                   <tr key={'o-' + o.id}>
                         <td>{o.name}</td>
-                        <td className="exd-meta-cell">Achat ponctuel · {o.priceUnit}</td>
+                        <td className="exd-meta-cell">{o.qty > 1 ? o.qty + ' sessions · ' + formatEUR(o.unitPrice) + ' / session' : 'Achat ponctuel · ' + (o.priceUnit || '')}</td>
                         <td className="exd-amount">{formatEUR(o.price)}</td>
                       </tr>
                   )}
@@ -6985,6 +7008,7 @@ const App = () => {
   const [selectedPacks, setSelectedPacks] = useState([]);
   const [multiAccountQty, setMultiAccountQty] = useState(5);
   const [internal, setInternal] = useState([]);
+  const [internalQty, setInternalQtyState] = useState({});
   const [external, setExternal] = useState([]);
   const [discountValue, setDiscountValue] = useState(0);
   const [discountType, setDiscountType] = useState('percent');
@@ -7003,7 +7027,24 @@ const App = () => {
     setAccountType: (type) => { setAccountType(type); setEffectifId(null); },
     togglePack: (id) => setSelectedPacks(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]),
     removePack: (id) => setSelectedPacks(prev => prev.filter(x => x !== id)),
-    toggleInternal: (id) => setInternal((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]),
+    toggleInternal: (id) => {
+      const isQuantifiable = INTERNAL_OPTIONS.find(o => o.id === id)?.quantifiable;
+      const isSelected = internal.includes(id);
+      setInternal(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+      if (isQuantifiable) {
+        if (isSelected) setInternalQtyState(prev => { const n = {...prev}; delete n[id]; return n; });
+        else setInternalQtyState(prev => ({...prev, [id]: 1}));
+      }
+    },
+    setInternalQty: (id, qty) => {
+      if (qty <= 0) {
+        setInternal(prev => prev.filter(x => x !== id));
+        setInternalQtyState(prev => { const n = {...prev}; delete n[id]; return n; });
+      } else {
+        setInternal(prev => prev.includes(id) ? prev : [...prev, id]);
+        setInternalQtyState(prev => ({...prev, [id]: qty}));
+      }
+    },
     toggleExternal: (id) => setExternal((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]),
     setDiscountValue,
     setDiscountType,
@@ -7016,7 +7057,7 @@ const App = () => {
 
   const state = {
     effectifId, accountType, selectedPacks, multiAccountQty,
-    internal, external, discountValue, discountType, monthsOffered,
+    internal, internalQty, external, discountValue, discountType, monthsOffered,
     tierUpgrade, offeredPresta, assoc1901
   };
 
@@ -7077,7 +7118,7 @@ const App = () => {
           <SocleSection effectif={effectif} accountType={accountType} onOpen={openSocle} />
           <CSMSection onOpen={openCSM} />
           <PacksSection selectedPacks={selectedPacks} onSelect={actions.togglePack} onOpen={openPack} multiAccountQty={multiAccountQty} onMultiQty={setMultiAccountQty} />
-          <InternalSection selected={internal} onToggle={actions.toggleInternal} onOpen={openOption} />
+          <InternalSection selected={internal} onToggle={actions.toggleInternal} onOpen={openOption} internalQty={internalQty} onSetQty={actions.setInternalQty} />
           <ConsomSection />
           <ExternalSection selected={external} onToggle={actions.toggleExternal} onOpen={openOption} />
         </main>

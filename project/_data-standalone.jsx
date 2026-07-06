@@ -62,10 +62,8 @@ const PACKS = [
       'Recrutement stratégique et opérationnel',
     ],
     features: [
-      { ico: 'auto_awesome',  label: 'Matching & Ranking IA',  details: 'Algorithme IA Jemmo : analyse chaque candidature au regard de la fiche de poste et trie automatiquement par pertinence. Score expliqué et révisable.' },
-      { ico: 'subtitles',     label: 'Transcript IA',           details: 'Enregistrement, transcription et résumé IA des entretiens visio. Compatible Google Meet, Zoom et Teams. Synchronisation auto sur la fiche candidat.' },
-      { ico: 'scoreboard',    label: 'Évaluations IA',      details: 'Grilles d’évaluation structurées par poste, scoring multi-critères et comparaison des candidats. Export PDF pour les comités.' },
-      { ico: 'verified',      label: 'Flatchr Skill',         details: 'Test envoyé aux candidats pour évaluer les soft skills et révéler leur véritable potentiel, au-delà du CV — pour ne pas passer à côté d\'un bon profil à l\'ère de l\'IA.' },
+      { ico: ‘subtitles’,     label: ‘Transcript IA’,           details: ‘Enregistrement, transcription et résumé IA des entretiens visio. Compatible Google Meet, Zoom et Teams. Synchronisation auto sur la fiche candidat.’ },
+      { ico: ‘verified’,      label: ‘Flatchr Skill’,         details: ‘Test envoyé aux candidats pour évaluer les soft skills et révéler leur véritable potentiel, au-delà du CV — pour ne pas passer à côté d\’un bon profil à l\’ère de l\’IA. 60 tests / an.’ },
     ],
     limitations: [
       'Fonctionnalités Entreprise (SSO, API, multi-comptes) non incluses',

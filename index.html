@@ -1114,6 +1114,13 @@ body { background: var(--bg-app); color: var(--fg-primary); }
   color: #fff;
   border-color: var(--color-primary-400);
 }
+.pack-card .badge-corner {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+.pack-card.coming { opacity: 0.65; }
+.pack-card.coming:hover { border-color: var(--border-subtle); box-shadow: none; }
 
 /* ─── Options grid ────────────────────────────────────────── */
 .options-grid {
@@ -3589,6 +3596,13 @@ body { background: var(--bg-app); color: var(--fg-primary); }
   color: #fff;
   border-color: var(--color-primary-400);
 }
+.pack-card .badge-corner {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+.pack-card.coming { opacity: 0.65; }
+.pack-card.coming:hover { border-color: var(--border-subtle); box-shadow: none; }
 
 /* ─── Options grid ────────────────────────────────────────── */
 .options-grid {
@@ -5016,19 +5030,20 @@ const CONSOM_ITEMS = [
 const PACKS = [
   {
     id: 'scaling',
-    name: 'Scaling',
+    name: 'Augmenté',
     color: 'scaling',
     icon: 'rocket_launch',
     tagline: 'Accélérez vos recrutements avec l\'IA',
     price: 2500,
+    status: 'coming',
     target: [
       'Équipes en croissance ou complexes',
       'Recruteurs et parties prenantes multiples',
       'Recrutement stratégique et opérationnel',
     ],
     features: [
-      { ico: 'subtitles',     label: 'Transcript IA',           details: 'Enregistrement, transcription et résumé IA des entretiens visio. Compatible Google Meet, Zoom et Teams. Synchronisation auto sur la fiche candidat. 5 licences incluses.' },
-      { ico: 'verified',      label: 'Flatchr Skill',         details: 'Test envoyé aux candidats pour évaluer les soft skills et révéler leur véritable potentiel, au-delà du CV — pour ne pas passer à côté d\'un bon profil à l\'ère de l\'IA. 60 tests / an.' },
+      { ico: 'psychology',    label: 'Matching / ranking personnalisé Jemmo', details: 'Algorithme de matching IA personnalisé via Jemmo : scoring et classement automatique des candidats selon vos critères métier et culturels.' },
+      { ico: 'subtitles',     label: 'Visio & Transcript IA',  details: 'Enregistrement, transcription et résumé IA des entretiens visio. Compatible Google Meet, Zoom et Teams. Synchronisation auto sur la fiche candidat.' },
     ],
     limitations: [
       'Fonctionnalités Entreprise (SSO, API, multi-comptes) non incluses',
@@ -5037,7 +5052,7 @@ const PACKS = [
   },
   {
     id: 'entreprise',
-    name: 'Entreprise',
+    name: 'Gouvernance',
     color: 'entreprise',
     icon: 'shield_lock',
     tagline: 'Sécurité, conformité et gouvernance',
@@ -5049,7 +5064,6 @@ const PACKS = [
     ],
     features: [
       { ico: 'key',           label: 'SSO (Single Sign-On)',                 details: 'Authentification unique via votre IdP (SAML 2.0 / OIDC). Compatible Azure AD, Okta, Google Workspace.' },
-      { ico: 'corporate_fare',label: 'Multi-Compte (max 5 SIREN)', details: 'Gestion centralisée de plusieurs sociétés sous un seul contrat (jusqu\'\u00e0 5 SIREN), avec paramétrage par entité.' },
       { ico: 'leaderboard',   label: 'Statistiques avancées',             details: 'Dimensions et métriques supplémentaires, exports CSV/Excel, exploration drill-down et alertes sur seuils.' },
       { ico: 'api',           label: 'API & support technique',              details: 'API REST docummentée, webhooks, sandbox de test et support technique dédié. Inclut des ateliers d\'intégration.' },
       { ico: 'support_agent', label: 'JTMO (sous éligibilité)',              details: 'Job Targeted Multi-diffusion Optimisée : optimisation continue de la diffusion par IA. Sous éligibilité volume.' },
@@ -5132,19 +5146,19 @@ const INTERNAL_OPTIONS = [
     id: 'imports',
     name: 'Imports personnalisés',
     icon: 'cloud_upload',
-    desc: 'Import de votre base de données candidats existante, facturé par pack de 1 000 candidats.',
-    price: 800,
-    priceUnit: '/ pack de 1 000',
-    longDesc: 'Vous avez une CV-thèque existante ? Notre équipe technique prend en charge l\'import propre et structuré de vos candidats dans Flatchr : mapping des champs, déduplication, attribution des sources et tags. Vous démarrez avec votre historique complet.',
+    desc: 'Import de votre base de données candidats existante dans Flatchr — maximum 10 000 candidats, données propres requises.',
+    price: 1000,
+    priceUnit: '/ tranche de 1 000',
+    longDesc: 'Vous avez une CV-thèque existante ? Notre équipe technique prend en charge l\'import structuré de vos candidats dans Flatchr. Important : la donnée doit être propre et normalisée avant import (champs standards, pas de doublons, encodage UTF-8). Maximum 10 000 candidats. Au-delà, devis sur mesure.',
     benefits: [
       'Migration depuis un ATS existant',
-      'Import massif de candidatures historiques',
-      'Création / synchronisation de comptes utilisateurs (membres)',
-      'Standardisation des modèles d\u2019offres',
-      'Intégration avec des outils tiers (HRIS, jobboards, CRM…)',
+      'Import jusqu\'à 10 000 candidats',
+      'Mapping des champs et déduplication',
+      'Attribution des sources et tags',
+      'Données propres et normalisées requises à la livraison',
     ],
     conditions: 'Délai : 15 jours ouvrés après validation du besoin.  Au-delà de 10 000 candidats, devis sur mesure.',
-  },
+    conditions: 'Délai : 15 jours ouvrés après validation du besoin. La donnée doit être propre et normalisée. Au-delà de 10 000 candidats, devis sur mesure.',
   {
     id: 'exports',
     name: 'Exports personnalisés',
@@ -5429,17 +5443,147 @@ const EXTERNAL_OPTIONS = [
     status: 'partner',
   },
   {
-    id: 'photos-videos',
-    name: 'Photos & Vidéos',
-    partner: 'Studios partenaires',
-    icon: 'videocam',
+    id: 'onboarding-ext',
+    name: 'Cooptation',
+    partner: 'Trusty',
+    icon: 'groups',
+    color: 'blue',
+    initials: 'Tr',
+    logoUrl: 'https://www.google.com/s2/favicons?domain=hellotrusty.io&sz=128',
+    desc: 'Digitalisez votre programme de cooptation. Dynamisez et simplifiez l\'engagement de vos équipes.',
+    price: null,
+    priceUnit: 'Sur devis',
+    longDesc: 'Trusty digitalise et optimise votre programme de cooptation : dynamisez l\'engagement de vos équipes, simplifiez le suivi des recommandations et félicitez vos meilleurs ambassadeurs.',
+    benefits: [
+      'Trouver plus facilement les collaborateurs de confiance',
+      'Engager davantage vos salariés en poste',
+      'Félicitez et récompensez vos meilleurs ambassadeurs',
+      'Suivi et pilotage du programme de cooptation',
+    ],
+    conditions: 'Tarif partenaire. Devis directement avec Trusty.',
+    status: 'partner',
+  },
+  {
+    id: 'umamy',
+    name: 'Sourcing candidats',
+    partner: 'Umamy',
+    icon: 'person_search',
+    color: 'primary',
+    initials: 'Um',
+    logoUrl: 'https://www.google.com/s2/favicons?domain=umamy.com&sz=128',
+    desc: 'Plateforme de sourcing et d\'engagement candidats : identifiez et approchez les meilleurs profils passifs.',
+    price: null,
+    priceUnit: 'Sur devis',
+    longDesc: 'Umamy vous aide à sourcer et engager les candidats passifs grâce à des approches personnalisées et une intégration directe avec Flatchr pour un suivi fluide.',
+    benefits: [
+      'Sourcing candidats passifs',
+      'Campagnes d\'approche personnalisées',
+      'Synchronisation avec Flatchr',
+      'Reporting et analytics',
+    ],
+    conditions: 'Tarif partenaire négocié.',
+    status: 'partner',
+  },
+  {
+    id: 'nixz',
+    name: 'Sourcing IA LinkedIn',
+    partner: 'NIXZ',
+    icon: 'manage_search',
+    color: 'green',
+    initials: 'Nx',
+    logoUrl: 'https://www.google.com/s2/favicons?domain=nixz.io&sz=128',
+    desc: 'Solution de sourcing IA depuis LinkedIn : identifiez des profils qualifiés et importez-les directement dans Flatchr en un clic.',
+    price: null,
+    priceUnit: 'Abonnement direct Nixz',
+    longDesc: 'Nixz est une solution de sourcing assistée par l\'IA qui permet d\'identifier des profils qualifiés depuis LinkedIn et de les importer directement dans Flatchr. Grâce à l\'intégration native, les recruteurs enrichissent leur vivier de candidats sans ressaisie et centralisent l\'ensemble de leur processus dans Flatchr.',
+    benefits: [
+      'Sourcez plus rapidement depuis LinkedIn grâce à l\'IA',
+      'Importez vos candidats en un clic dans Flatchr via l\'extension Nixz',
+      'Conservez la traçabilité des candidats (source et origine)',
+      'Centralisez votre recrutement directement dans Flatchr',
+    ],
+    conditions: 'L\'abonnement Nixz est souscrit directement auprès de Nixz. Flatchr n\'est pas revendeur de la solution.',
+    status: 'partner',
+  },
+];
+
+// ─── Partenaires stratégie de communication RH ───────────────
+const COMM_RH_OPTIONS = [
+  {
+    id: 'achat-media',
+    name: 'Achat média RH',
+    partner: 'Réseau partenaires',
+    icon: 'campaign',
+    color: 'yellow',
+    initials: 'AM',
+    noLogo: true,
+    agencies: [
+      { name: 'Ideuzo',                    url: 'https://www.ideuzo.com/' },
+      { name: 'Azuria (ex Axial KAM RH)',  url: 'https://www.azuria.fr/' },
+      { name: 'Tomorhow',                  url: 'https://www.tomorhow.com/' },
+      { name: 'Sixfeetover',               url: 'https://www.sixfeetover.fr/' },
+      { name: 'Midway',                    url: 'https://www.midway-com.com/' },
+      { name: 'Orhatek',                   url: 'https://www.orhatek.fr/' },
+      { name: 'Wefeelgood',                url: 'https://www.wefeelgoodrh.com/' },
+      { name: 'Welcomrh',                  url: 'https://welcom-rh.fr/' },
+      { name: 'Act4skill',                 url: 'https://act4skills.com/' },
+    ],
+    desc: 'Achat d\'espaces publicitaires RH (jobboards, réseaux sociaux, médias spécialisés) pour maximiser la visibilité de vos offres.',
+    price: null,
+    priceUnit: 'Sur devis',
+    longDesc: 'Nos agences partenaires gèrent l\'achat média RH pour vous : sélection des supports, négociation des tarifs, suivi des campagnes et reporting ROI.',
+    benefits: [
+      'Sélection des meilleurs supports RH',
+      'Négociation tarifaire préférentielle',
+      'Suivi et optimisation des campagnes',
+      'Reporting ROI détaillé',
+    ],
+    conditions: 'Devis directement avec l\'agence. Flatchr assure la mise en relation.',
+    status: 'partner',
+  },
+  {
+    id: 'marque-employeur',
+    name: 'Stratégie de marque employeur',
+    partner: 'Réseau partenaires',
+    icon: 'star',
     color: 'pink',
-    initials: 'PV',
+    initials: 'ME',
+    noLogo: true,
+    agencies: [
+      { name: 'Tomorhow',    url: 'https://www.tomorhow.com/' },
+      { name: 'Sixfeetover', url: 'https://www.sixfeetover.fr/' },
+      { name: 'Midway',      url: 'https://www.midway-com.com/' },
+      { name: 'Orhatek',     url: 'https://www.orhatek.fr/' },
+      { name: 'Wefeelgood',  url: 'https://www.wefeelgoodrh.com/' },
+      { name: 'Welcomrh',    url: 'https://welcom-rh.fr/' },
+      { name: 'Act4skill',   url: 'https://act4skills.com/' },
+    ],
+    desc: 'Audit, stratégie et déploiement de votre marque employeur pour attirer et fidéliser les meilleurs talents.',
+    price: null,
+    priceUnit: 'Sur devis',
+    longDesc: 'Pour les projets de marque employeur ambitieux, nous vous mettons en relation avec notre réseau d\'agences partenaires triées sur le volet : audit, stratégie, création de campagnes.',
+    benefits: [
+      'Audit de marque employeur',
+      'Définition de l\'EVP (Employee Value Proposition)',
+      'Création de contenus RH',
+      'Refonte de site carrière',
+      'Campagnes social media RH',
+    ],
+    conditions: 'Devis directement avec l\'agence. Flatchr assure le matching.',
+    status: 'partner',
+  },
+  {
+    id: 'deeplens',
+    name: 'Shooting photo & vidéo',
+    partner: 'Deeplens',
+    icon: 'videocam',
+    color: 'primary',
+    initials: 'DL',
     logoUrl: 'https://www.google.com/s2/favicons?domain=deeplensagency.com&sz=128',
     desc: 'Production de contenus photo & vidéo pour votre marque employeur : tournages, interviews collaborateurs, visites de site.',
-    price: 4500,
-    priceUnit: '/ tournage',
-    longDesc: 'Faites venir un studio partenaire sur site : tournage d\'une journée, 3 à 5 témoignages vidéo, banque d\'images marque employeur, montage et livraison.',
+    price: null,
+    priceUnit: 'Sur devis',
+    longDesc: 'Faites venir Deeplens sur site : tournage d\'une journée, 3 à 5 témoignages vidéo collaborateurs, banque d\'images marque employeur, montage et livraison.',
     benefits: [
       'Tournage journée sur site',
       '3 à 5 témoignages vidéo finalisés',
@@ -5447,82 +5591,7 @@ const EXTERNAL_OPTIONS = [
       'Montage & sous-titrage',
       'Droits d\'usage perpétuels',
     ],
-    conditions: 'Nouveauté 2026. Prix indicatif selon localisation et volume.',
-    status: 'new',
-  },
-  {
-    id: 'planning',
-    name: 'Gestion Planning',
-    partner: 'À venir',
-    icon: 'calendar_month',
-    color: 'neutral',
-    initials: 'Pl',
-    logoUrl: 'https://www.google.com/s2/favicons?domain=skello.io&sz=128',
-    desc: 'Gestion des plannings de tournées et de visites pour les jobs terrain. Intégration en cours de partenariat.',
-    price: null,
-    priceUnit: 'Bientôt disponible',
-    longDesc: 'Pour les recrutements à fort volume sur le terrain (retail, restauration, BTP), un module de planification des tournées et entretiens en magasin. Partenariat en cours de finalisation.',
-    benefits: [
-      'Planification multi-sites',
-      'Optimisation des tournées',
-      'Synchro agenda candidat & recruteur',
-      'Notifications SMS',
-    ],
-    conditions: 'Disponibilité prévue Q3 2026. Pré-inscription possible.',
-    status: 'coming',
-  },
-  {
-    id: 'onboarding-ext',
-    name: 'Onboarding salarié',
-    partner: 'À venir',
-    icon: 'how_to_reg',
-    color: 'neutral',
-    initials: 'On',
-    logoUrl: 'https://www.google.com/s2/favicons?domain=heyteam.com&sz=128',
-    desc: 'Module d\'onboarding des nouveaux collaborateurs : pré-boarding, parcours, signatures et premiers jours.',
-    price: null,
-    priceUnit: 'Bientôt disponible',
-    longDesc: 'Prolongez l\'expérience candidat avec un parcours d\'onboarding fluide : envoi documents avant arrivée, signature électronique, parcours premiers jours, intégration équipe. Partenariat en cours.',
-    benefits: [
-      'Pré-boarding documents',
-      'Signature électronique',
-      'Parcours premiers jours',
-      'Intégration équipe',
-    ],
-    conditions: 'Disponibilité prévue Q4 2026.',
-    status: 'coming',
-  },
-  {
-    id: 'agences',
-    name: 'Agences de communication RH',
-    partner: 'Réseau partenaires',
-    icon: 'campaign',
-    color: 'yellow',
-    initials: 'AC',
-    noLogo: true,
-    agencies: [
-      { name: 'Ideuzo',                 url: 'https://www.ideuzo.com/' },
-      { name: 'Azuria (ex Axial KAM RH)', url: 'https://www.azuria.fr/' },
-      { name: 'Tomorhow',               url: 'https://www.tomorhow.com/' },
-      { name: 'Sixfeetover',            url: 'https://www.sixfeetover.fr/' },
-      { name: 'Midway',                 url: 'https://www.midway-com.com/' },
-      { name: 'Orhatek',                url: 'https://www.orhatek.fr/' },
-      { name: 'Wefeelgood',             url: 'https://www.wefeelgoodrh.com/' },
-      { name: 'Welcomrh',               url: 'https://welcom-rh.fr/' },
-      { name: 'Act4skill',              url: 'https://act4skills.com/' },
-    ],
-    desc: 'Notre réseau d\'agences spécialisées marque employeur : stratégie, refonte de site carrière, campagnes sociales.',
-    price: null,
-    priceUnit: 'Sur devis',
-    longDesc: 'Pour les projets de marque employeur ambitieux, nous vous mettons en relation avec notre réseau d\'agences partenaires triées sur le volet : audit, stratégie, création de campagnes.',
-    benefits: [
-      'Mise en relation agences sélectionnées',
-      'Tarifs préférentiels Flatchr',
-      'Stratégie marque employeur',
-      'Campagnes social media RH',
-      'Refonte de site carrière',
-    ],
-    conditions: 'Devis directement avec l\'agence. Flatchr assure le matching.',
+    conditions: 'Devis directement avec Deeplens selon votre projet et localisation.',
     status: 'partner',
   },
 ];
@@ -5678,7 +5747,7 @@ const TopBar = ({ onExport, state }) => {
     }
     const q = computeQuote(state);
     const effectif = (state.accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS).find(e => e.id === state.effectifId);
-    const accountLabels = { public: 'Collectivité publique', cabinet: 'Cabinet RH', entreprise: 'Entreprise' };
+    const accountLabels = { public: 'Collectivité', cabinet: 'Cabinet RH', reseau: 'Réseau', standard: 'Entreprise' };
     const packsItems = (q.packs || []).map(p => ({
       name: p.name,
       price: p.id === 'multi' ? p.price * (q.multiAccountQty || 1) : p.price,
@@ -5764,14 +5833,23 @@ const ConfigPanel = ({ state, actions, collapsed }) => {
           <div className="group-label"><span>Type de compte</span></div>
           <div className="seg" style={{ width: '100%' }}>
             <button className={accountType === 'standard' ? 'active' : ''} style={{ flex: 1, padding: '8px 4px', fontSize: 12 }} onClick={() => actions.setAccountType('standard')} data-comment-anchor="fe037b880a-button-123-13">Entreprise</button>
-            <button className={accountType === 'public' ? 'active' : ''} style={{ flex: 1, padding: '8px 4px', fontSize: 12 }} onClick={() => actions.setAccountType('public')}>Ent. publique</button>
-            <button className={accountType === 'cabinet' ? 'active' : ''} style={{ flex: 1, padding: '8px 4px', fontSize: 12 }} onClick={() => actions.setAccountType('cabinet')}>Cabinet</button>
+            <button className={accountType === 'public' ? 'active' : ''} style={{ flex: 1, padding: '8px 4px', fontSize: 12 }} onClick={() => actions.setAccountType('public')}>Collectivité</button>
+            <button className={accountType === 'reseau' ? 'active' : ''} style={{ flex: 1, padding: '8px 4px', fontSize: 12 }} onClick={() => actions.setAccountType('reseau')}>Réseau</button>
           </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, fontSize: 12, color: 'var(--color-neutral-600)', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={accountType === 'cabinet'}
+              onChange={(e) => actions.setAccountType(e.target.checked ? 'cabinet' : 'standard')}
+              style={{ width: 14, height: 14, accentColor: 'var(--color-primary-500)', cursor: 'pointer' }}
+            />
+            Cabinet de recrutement
+          </label>
         </div>
 
         {/* Effectif */}
         <div className="pricing-group">
-          <div className="group-label"><span>{accountType === 'cabinet' ? 'Collaborateurs' : accountType === 'public' ? 'Nombre d\'habitants' : 'Effectif salariés'}</span></div>
+          <div className="group-label"><span>{accountType === 'cabinet' ? 'Collaborateurs' : accountType === 'public' ? 'Nombre d\'habitants' : accountType === 'reseau' ? 'Membres du réseau' : 'Effectif salariés'}</span></div>
           <div className="effectif-grid">
             {(accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS).map((t) =>
             <button key={t.id}
@@ -6120,7 +6198,8 @@ const SECTIONS = [
 { id: 'packs', label: 'Packs', icon: 'inventory_2' },
 { id: 'interne', label: 'Options Flatchr', icon: 'extension' },
 { id: 'consom', label: 'Usage', icon: 'speed' },
-{ id: 'externe', label: 'Partenaires', icon: 'hub' }];
+{ id: 'externe', label: 'Partenaires', icon: 'hub' },
+{ id: 'comm-rh', label: 'Comm RH', icon: 'campaign' }];
 
 
 const SectionNav = ({ active, onJump }) =>
@@ -6269,13 +6348,16 @@ const PacksSection = ({ selectedPacks, onSelect, onOpen, multiAccountQty, onMult
     sub="Trois directions pour accélérer : l'IA pour scaler, l'entreprise pour sécuriser, le multi-entités pour piloter." />
   
     <div className="packs-grid">
-      {PACKS.map((pack) =>
+      {PACKS.map((pack) => {
+      const isComing = pack.status === 'coming';
+      return (
     <div
       key={pack.id}
-      className={`pack-card ${pack.color}${selectedPacks.includes(pack.id) ? ' selected' : ''}`}
-      onClick={() => onOpen(pack)} style={{ backgroundColor: "rgb(255, 255, 255)" }}>
-      
-          <div className="pack-icon" style={{ color: "rgb(255, 255, 255)", backgroundColor: "rgb(1, 155, 178)" }}><span className="ico">{pack.icon}</span></div>
+      className={`pack-card ${pack.color}${selectedPacks.includes(pack.id) ? ' selected' : ''}${isComing ? ' coming' : ''}`}
+      onClick={() => !isComing && onOpen(pack)} style={{ backgroundColor: "rgb(255, 255, 255)", opacity: isComing ? 0.6 : 1, cursor: isComing ? 'default' : 'pointer' }}>
+
+          {isComing && <div className="badge-corner"><span className="tag neutral">Bientôt disponible</span></div>}
+          <div className="pack-icon" style={{ color: "rgb(255, 255, 255)", backgroundColor: isComing ? 'var(--color-neutral-400)' : "rgb(1, 155, 178)" }}><span className="ico">{pack.icon}</span></div>
           <h4>Pack {pack.name}</h4>
           <div className="pack-tagline">{pack.tagline}</div>
           <ul className="pack-features">
@@ -6284,8 +6366,8 @@ const PacksSection = ({ selectedPacks, onSelect, onOpen, multiAccountQty, onMult
         )}
           </ul>
           <div className="pack-price">
-            <div className="price">{formatEUR(pack.id === 'multi' ? pack.price * (multiAccountQty || 1) : pack.price)}</div>
-            <div className="unit">{pack.id === 'multi' ? `/ an · ${multiAccountQty || 1} entité${(multiAccountQty || 1) > 1 ? 's' : ''}` : pack.priceUnit || '/ an'}</div>
+            <div className="price">{isComing ? '—' : formatEUR(pack.id === 'multi' ? pack.price * (multiAccountQty || 1) : pack.price)}</div>
+            <div className="unit">{isComing ? 'En préparation' : pack.id === 'multi' ? `/ an · ${multiAccountQty || 1} entité${(multiAccountQty || 1) > 1 ? 's' : ''}` : pack.priceUnit || '/ an'}</div>
           </div>
           {pack.id === 'multi' &&
       <div className="multi-qty" onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, margin: '0 0 14px', padding: '8px 12px', background: 'var(--color-neutral-100, #f4f5f7)', borderRadius: 8 }}>
@@ -6297,11 +6379,19 @@ const PacksSection = ({ selectedPacks, onSelect, onOpen, multiAccountQty, onMult
             </div>
           </div>
       }
+          {!isComing &&
           <div className="pack-cta" onClick={(e) => {e.stopPropagation();onSelect(pack.id);}}>
             {selectedPacks.includes(pack.id) ? '✓ Sélectionné — retirer' : 'Ajouter au devis'}
           </div>
+          }
+          {isComing &&
+          <div className="pack-cta" style={{ backgroundColor: 'var(--color-neutral-200)', color: 'var(--color-neutral-500)', cursor: 'default' }}>
+            Bientôt disponible
+          </div>
+          }
         </div>
-    )}
+      );
+    })}
     </div>
   </section>;
 
@@ -6358,8 +6448,8 @@ const ExternalSection = ({ selected, onToggle, onOpen }) =>
 <section className="section" id="externe" data-screen-label="06 Catalogue externe">
     <SectionHead
     label="Catalogue Produit Externe"
-    title="Partenaires intégrés"
-    sub="Notre écosystème de partenaires triés sur le volet, directement branchés à Flatchr. Tarifs négociés, intégration native." />
+    title="Recommandations partenaires"
+    sub="Notre sélection de partenaires triés sur le volet, directement branchés à Flatchr. Tarifs négociés, intégration native." />
   
     <div className="options-grid">
       {EXTERNAL_OPTIONS.map((o) => {
@@ -6395,6 +6485,44 @@ const ExternalSection = ({ selected, onToggle, onOpen }) =>
           </div>
         </div>);
     })}
+    </div>
+  </section>;
+
+
+// ─── Communication RH Section ───────────────────────────────────
+const CommRHSection = ({ onOpen }) =>
+<section className="section" id="comm-rh" data-screen-label="07 Comm RH">
+    <SectionHead
+    label="Partenaires stratégiques"
+    title="Partenaire stratégie de communication RH"
+    sub="Nos partenaires sélectionnés pour booster votre attractivité employeur : achat média, marque employeur et production de contenus." />
+
+    <div className="options-grid">
+      {COMM_RH_OPTIONS.map((o) => (
+        <div
+          key={o.id}
+          className="option-card partner"
+          onClick={() => onOpen(o, 'commrh')}>
+
+          <div className="check-mark"><span className="ico">check</span></div>
+          <PartnerLogo option={o} />
+          <h4>{o.name}</h4>
+          <p className="desc">{o.desc}</p>
+          <div className="option-footer">
+            <div className="option-price partner-cta">
+              <span style={{ color: 'var(--color-neutral-800)', fontSize: 12, fontWeight: 600 }}>
+                {o.price === null ? o.priceUnit : (formatEUR(o.price) + ' ' + (o.priceUnit || ''))}
+              </span>
+            </div>
+            <button
+              className="option-toggle"
+              onClick={(e) => { e.stopPropagation(); onOpen(o, 'commrh'); }}
+              style={{ cursor: 'pointer' }}>
+              En savoir +
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   </section>;
 
@@ -6809,8 +6937,8 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
             </div>
             <div className="exd-meta">
               <div><span>Date</span><strong>{today}</strong></div>
-              <div><span>Type de compte</span><strong>{accountType === 'cabinet' ? 'Cabinet' : accountType === 'public' ? 'Entreprise publique' : 'Entreprise'}</strong></div>
-              <div><span>{accountType === 'cabinet' ? 'Collaborateurs' : accountType === 'public' ? 'Nombre d\'habitants' : 'Effectif salariés'}</span>
+              <div><span>Type de compte</span><strong>{accountType === 'cabinet' ? 'Cabinet' : accountType === 'public' ? 'Collectivité' : accountType === 'reseau' ? 'Réseau' : 'Entreprise'}</strong></div>
+              <div><span>{accountType === 'cabinet' ? 'Collaborateurs' : accountType === 'public' ? 'Nombre d\'habitants' : accountType === 'reseau' ? 'Membres du réseau' : 'Effectif salariés'}</span>
                 <strong>{accountType === 'cabinet' ? effectif?.cabinet : accountType === 'public' ? (effectif?.label ?? '—') + (effectif?.range ? ' · ' + effectif.range + ' hab.' : '') : effectif?.range}</strong></div>
             </div>
           </header>
@@ -6889,7 +7017,7 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
           {externalItems.length > 0 &&
           <section className="exd-section">
               <div className="exd-section-head">
-                <h2>Partenaires intégrés</h2>
+                <h2>Recommandations partenaires</h2>
                 <div className="exd-tag exd-tag-primary">Mise en relation · hors facturation Flatchr</div>
               </div>
               <div className="exd-list">
@@ -7196,6 +7324,7 @@ const App = () => {
           <InternalSection selected={internal} onToggle={actions.toggleInternal} onOpen={openOption} internalQty={internalQty} onSetQty={actions.setInternalQty} />
           <ConsomSection />
           <ExternalSection selected={external} onToggle={actions.toggleExternal} onOpen={openOption} />
+          <CommRHSection onOpen={openOption} />
         </main>
         <SummaryCard state={state} actions={actions} />
       </div>

@@ -5451,8 +5451,8 @@ const EXTERNAL_OPTIONS = [
     initials: 'Tr',
     logoUrl: 'https://www.google.com/s2/favicons?domain=hellotrusty.io&sz=128',
     desc: 'Digitalisez votre programme de cooptation. Dynamisez et simplifiez l\'engagement de vos équipes.',
-    price: null,
-    priceUnit: 'Sur devis',
+    price: 0,
+    priceUnit: 'Mise en relation',
     longDesc: 'Trusty digitalise et optimise votre programme de cooptation : dynamisez l\'engagement de vos équipes, simplifiez le suivi des recommandations et félicitez vos meilleurs ambassadeurs.',
     benefits: [
       'Trouver plus facilement les collaborateurs de confiance',
@@ -5472,8 +5472,8 @@ const EXTERNAL_OPTIONS = [
     initials: 'Um',
     logoUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA0MCI+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNywxMikiPgogICAgPHBhdGggZD0iTTAsLTggTDEuNCwtMS40IEw4LDAgTDEuNCwxLjQgTDAsOCBMLTEuNCwxLjQgTC04LDAgTC0xLjQsLTEuNCBaIiBmaWxsPSIjRjQ3MkI2Ii8+CiAgICA8Y2lyY2xlIGN4PSI2LjUiIGN5PSItNi41IiByPSIxLjgiIGZpbGw9IiNGOUE4RDQiLz4KICA8L2c+CiAgPHRleHQgeD0iMTgiIHk9IjE2IiBmb250LWZhbWlseT0iQXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGZvbnQtd2VpZ2h0PSI4MDAiIGZpbGw9IiMxRTFCNEIiPlVtYW15PC90ZXh0Pgo8L3N2Zz4=',
     desc: 'Plateforme de sourcing et d\'engagement candidats : identifiez et approchez les meilleurs profils passifs.',
-    price: null,
-    priceUnit: 'Sur devis',
+    price: 0,
+    priceUnit: 'Mise en relation',
     longDesc: 'Umamy vous aide à sourcer et engager les candidats passifs grâce à des approches personnalisées et une intégration directe avec Flatchr pour un suivi fluide.',
     benefits: [
       'Sourcing candidats passifs',
@@ -5493,8 +5493,8 @@ const EXTERNAL_OPTIONS = [
     initials: 'Nx',
     logoUrl: 'https://www.google.com/s2/favicons?domain=nixz.io&sz=128',
     desc: 'Solution de sourcing IA depuis LinkedIn : identifiez des profils qualifiés et importez-les directement dans Flatchr en un clic.',
-    price: null,
-    priceUnit: 'Abonnement direct Nixz',
+    price: 0,
+    priceUnit: 'Mise en relation',
     longDesc: 'Nixz est une solution de sourcing assistée par l\'IA qui permet d\'identifier des profils qualifiés depuis LinkedIn et de les importer directement dans Flatchr. Grâce à l\'intégration native, les recruteurs enrichissent leur vivier de candidats sans ressaisie et centralisent l\'ensemble de leur processus dans Flatchr.',
     benefits: [
       'Sourcez plus rapidement depuis LinkedIn grâce à l\'IA',
@@ -6485,7 +6485,7 @@ const ExternalSection = ({ selected, onToggle, onOpen }) =>
             {!isComing &&
             <button
               className="option-toggle"
-              onClick={(e) => { e.stopPropagation(); o.price === null ? onOpen(o, 'external') : onToggle(o.id); }}
+              onClick={(e) => { e.stopPropagation(); onToggle(o.id); }}
               style={{ cursor: 'pointer' }}>
                 {o.price === null ? 'En savoir +' : selected.includes(o.id) ? 'Retirer' : 'Ajouter'}
                 {o.price !== null && <span className="ico">{selected.includes(o.id) ? 'remove_circle_outline' : 'add_circle_outline'}</span>}

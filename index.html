@@ -6485,9 +6485,8 @@ const ExternalSection = ({ selected, onToggle, onOpen }) =>
             {!isComing &&
             <button
               className="option-toggle"
-              onClick={(e) => {e.stopPropagation();if (o.price !== null) onToggle(o.id);}}
+              onClick={(e) => { e.stopPropagation(); o.price === null ? onOpen(o, 'external') : onToggle(o.id); }}
               style={{ cursor: 'pointer' }}>
-              
                 {o.price === null ? 'En savoir +' : selected.includes(o.id) ? 'Retirer' : 'Ajouter'}
                 {o.price !== null && <span className="ico">{selected.includes(o.id) ? 'remove_circle_outline' : 'add_circle_outline'}</span>}
               </button>

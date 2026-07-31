@@ -5850,23 +5850,32 @@ const ConfigPanel = ({ state, actions, collapsed }) => {
 
         {/* Effectif */}
         <div className="pricing-group">
-          <div className="group-label"><span>{accountType === 'cabinet' ? 'Collaborateurs' : accountType === 'public' ? 'Nombre d\'habitants' : accountType === 'reseau' ? 'Membres du réseau' : 'Effectif salariés'}</span></div>
-          <div className="effectif-grid">
-            {(accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS).map((t) =>
-            <button key={t.id}
-            className={'effectif-chip' + (t.id === state.effectifId ? ' selected' : '')}
-            onClick={() => actions.setEffectif(t.id === state.effectifId ? null : t.id)}>
-                <span className="effectif-range">{accountType === 'public' ? t.label : accountType === 'cabinet' ? t.cabinet.replace(' collab.', '') : t.range}</span>
-                <span className="effectif-price">{t.custom ? 'Sur devis' : accountType === 'public' ? t.range + ' hab. · ' + formatEUR(t.price) : formatEUR(t.price) + ' / an'}</span>
-              </button>
-            )}
-          </div>
-          {!effectif &&
-          <div className="effectif-hint">
-              <span className="ico">info</span>
-              Aucun socle sélectionné — utile si le client a déjà un abonnement Flatchr en cours.
+          <div className="group-label"><span>{accountType === 'cabinet' ? 'Collaborateurs' : accountType === 'public' ? 'Nombre d\'habitants' : accountType === 'reseau' ? 'Type d\'offre' : 'Effectif salariés'}</span></div>
+          {accountType === 'reseau' ? (
+            <div style={{ background: 'var(--color-primary-50)', border: '1.5px solid var(--color-primary-200)', borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-primary-700)' }}>Offre sur mesure · Contrat cadre</span>
+              <span style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>Tarification et conditions négociées au cas par cas.</span>
             </div>
-          }
+          ) : (
+            <>
+              <div className="effectif-grid">
+                {(accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS).map((t) =>
+                <button key={t.id}
+                className={'effectif-chip' + (t.id === state.effectifId ? ' selected' : '')}
+                onClick={() => actions.setEffectif(t.id === state.effectifId ? null : t.id)}>
+                    <span className="effectif-range">{accountType === 'public' ? t.label : accountType === 'cabinet' ? t.cabinet.replace(' collab.', '') : t.range}</span>
+                    <span className="effectif-price">{t.custom ? 'Sur devis' : accountType === 'public' ? t.range + ' hab. · ' + formatEUR(t.price) : formatEUR(t.price) + ' / an'}</span>
+                  </button>
+                )}
+              </div>
+              {!effectif &&
+              <div className="effectif-hint">
+                  <span className="ico">info</span>
+                  Aucun socle sélectionné — utile si le client a déjà un abonnement Flatchr en cours.
+                </div>
+              }
+            </>
+          )}
         </div>
 
         {/* Remise commerciale */}

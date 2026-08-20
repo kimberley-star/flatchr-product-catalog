@@ -6843,6 +6843,19 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
                   <h4>Description</h4>
                   <p className="desc-text">{data.longDesc}</p>
                 </div>
+                {data.agencies &&
+                  <div className="section-block">
+                    <h4>Notre réseau d'agences RH</h4>
+                    <div className="agency-grid">
+                      {data.agencies.map((a, i) =>
+                        <a key={i} href={a.url} target="_blank" rel="noopener" className="agency-chip">
+                          <span>{a.name}</span>
+                          <span className="ico">open_in_new</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                }
                 <div className="section-block">
                   <h4>Tarif & conditions</h4>
                   <div style={{ padding: 16, background: 'var(--color-neutral-50)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--r-8)' }}>
@@ -6863,19 +6876,6 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
                     <li key={i}><span className="ico">check_circle</span>{b}</li>
                   )}
                 </ul>
-                {data.agencies &&
-                  <div className="agency-list">
-                    <h4 style={{ marginTop: 4 }}>Notre réseau d'agences RH</h4>
-                    <div className="agency-grid">
-                      {data.agencies.map((a, i) =>
-                        <a key={i} href={a.url} target="_blank" rel="noopener" className="agency-chip">
-                          <span>{a.name}</span>
-                          <span className="ico">open_in_new</span>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                }
               </div>
             }
           </>

@@ -5686,9 +5686,14 @@ const computeQuote = (state) => {
   const recurringYear2 = Math.max(0, recurringSubtotal - discountAmount);
 
   const monthsCount = Number(monthsOffered) || 0;
-  // Tier downgrade applies year 1 only — subtract from year 2 base before months-offered calculation
   const tierYear1Saving = tierDiscountActive ? downgradeSaving : 0;
-  const firstYearBase = Math.max(0, recurringYear2 - tierYear1Saving);
+  // HubSpot method: apply cran FIRST, then commercial discount on the reduced year-1 base
+  const recurringSubtotalY1 = Math.max(0, recurringSubtotal - tierYear1Saving);
+  const pctDiscountY1 = tierDiscountActive
+    ? (discountType === 'percent' ? Math.round(recurringSubtotalY1 * ((discountValue || 0) / 100)) : discountValue || 0)
+      + (assoc1901 ? Math.round(recurringSubtotalY1 * 0.5) : 0)
+    : discountAmount;
+  const firstYearBase = Math.max(0, recurringSubtotalY1 - pctDiscountY1);
   // Months offered extend the contract duration — they do NOT reduce the invoice price
   const extendedMonths = monthsCount > 0 ? 12 + monthsCount : 12;
   const firstYearRecurring = firstYearBase;
@@ -5703,7 +5708,7 @@ const computeQuote = (state) => {
     fullSoclePrice, soclePrice, packPrice,
     internalItems, externalItems, oneShotTotal, recurringInternalItems, oneShotItems, recurringInternalTotal,
     offeredItems, offeredValue, gestureValue,
-    recurringSubtotal, pctDiscount, assoc1901Discount, discountAmount,
+    recurringSubtotal, pctDiscount, pctDiscountY1, assoc1901Discount, discountAmount,
     recurringYear2, monthsCount, extendedMonths, tierYear1Saving, firstYearBase, firstYearRecurring, firstYearTotal,
     splitYears, discountValue, discountType
   };
@@ -6934,8 +6939,8 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
     packs, isCustom, downgradeTier, tierDiscountActive, downgradeSaving, upgradePct,
     fullSoclePrice, soclePrice, packPrice, internalItems, externalItems, oneShotTotal,
     recurringInternalItems, oneShotItems,
-    offeredItems, offeredValue, pctDiscount, assoc1901Discount, discountAmount,
-    recurringYear2, monthsCount, extendedMonths, tierYear1Saving, firstYearTotal, splitYears
+    offeredItems, offeredValue, pctDiscount, pctDiscountY1, assoc1901Discount, discountAmount,
+    recurringYear2, monthsCount, extendedMonths, tierYear1Saving, firstYearBase, firstYearTotal, splitYears
   } = q;
 
   const today = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date());
@@ -7121,40 +7126,57 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                         <td className="exd-amount">{formatEUR(o.price)} <span>/ an</span></td>
                       </tr>
                   )}
-                    {pctDiscount > 0 &&
-                  <tr className="exd-discount-row">
-                        <td>Remise commerciale</td>
-                        <td className="exd-meta-cell">{discountType === 'percent' ? `${discountValue} %` : formatEUR(discountValue)}</td>
-                        <td className="exd-amount exd-negative">− {formatEUR(pctDiscount)}</td>
-                      </tr>
-                  }
-                    {assoc1901Discount > 0 &&
-                  <tr className="exd-discount-row">
-                        <td>Réduction association loi 1901</td>
-                        <td className="exd-meta-cell">−50 % sur l'abonnement</td>
-                        <td className="exd-amount exd-negative">− {formatEUR(assoc1901Discount)}</td>
-                      </tr>
-                  }
-                    <tr className="exd-subtotal">
-                      <td colSpan={2}>Abonnement annuel{splitYears ? ' · dès la 2ème année' : monthsCount > 0 ? ' · contrat de ' + extendedMonths + ' mois' : ''}</td>
-                      <td className="exd-amount">{formatEUR(recurringYear2)} <span>/ an</span></td>
-                    </tr>
-                    {paymentSchedule && paymentSchedule !== 'annual' && recurringYear2 > 0 &&
-                    <tr className="exd-discount-row" style={{ background: 'var(--color-primary-50)' }}>
-                      <td style={{ color: 'var(--color-primary-700)', fontWeight: 600 }}>Facturation {psLabel.toLowerCase()}</td>
-                      <td className="exd-meta-cell">Paiement aménagé</td>
-                      <td className="exd-amount" style={{ color: 'var(--color-primary-700)', fontWeight: 600 }}>
-                        {formatEUR(Math.round(recurringYear2 / (paymentSchedule === 'quarterly' ? 4 : 2)))} <span>/ {paymentSchedule === 'quarterly' ? 'trimestre' : 'semestre'}</span>
-                      </td>
-                    </tr>
-                    }
-                    {tierYear1Saving > 0 &&
-                  <tr className="exd-discount-row">
+                    {tierDiscountActive ? <>
+                      {/* HubSpot method: cran first, then commercial on reduced base */}
+                      <tr className="exd-discount-row">
                         <td>Remise d'un cran d'effectif</td>
                         <td className="exd-meta-cell">1ère année uniquement (−{upgradePct}%)</td>
                         <td className="exd-amount exd-negative">− {formatEUR(tierYear1Saving)}</td>
                       </tr>
-                  }
+                      {pctDiscountY1 > 0 &&
+                        <tr className="exd-discount-row">
+                          <td>Remise commerciale</td>
+                          <td className="exd-meta-cell">{discountType === 'percent' ? `${discountValue} %` : formatEUR(discountValue)}</td>
+                          <td className="exd-amount exd-negative">− {formatEUR(pctDiscountY1)}</td>
+                        </tr>
+                      }
+                      <tr className="exd-subtotal">
+                        <td colSpan={2}>Abonnement récurrent · 1ère année</td>
+                        <td className="exd-amount">{formatEUR(firstYearBase)} <span>/ an</span></td>
+                      </tr>
+                      <tr className="exd-subtotal" style={{ opacity: 0.7 }}>
+                        <td colSpan={2}>Abonnement annuel · dès la 2ème année</td>
+                        <td className="exd-amount">{formatEUR(recurringYear2)} <span>/ an</span></td>
+                      </tr>
+                    </> : <>
+                      {pctDiscount > 0 &&
+                        <tr className="exd-discount-row">
+                          <td>Remise commerciale</td>
+                          <td className="exd-meta-cell">{discountType === 'percent' ? `${discountValue} %` : formatEUR(discountValue)}</td>
+                          <td className="exd-amount exd-negative">− {formatEUR(pctDiscount)}</td>
+                        </tr>
+                      }
+                      {assoc1901Discount > 0 &&
+                        <tr className="exd-discount-row">
+                          <td>Réduction association loi 1901</td>
+                          <td className="exd-meta-cell">−50 % sur l'abonnement</td>
+                          <td className="exd-amount exd-negative">− {formatEUR(assoc1901Discount)}</td>
+                        </tr>
+                      }
+                      <tr className="exd-subtotal">
+                        <td colSpan={2}>Abonnement annuel{monthsCount > 0 ? ' · contrat de ' + extendedMonths + ' mois' : ''}</td>
+                        <td className="exd-amount">{formatEUR(recurringYear2)} <span>/ an</span></td>
+                      </tr>
+                      {paymentSchedule && paymentSchedule !== 'annual' && recurringYear2 > 0 &&
+                        <tr className="exd-discount-row" style={{ background: 'var(--color-primary-50)' }}>
+                          <td style={{ color: 'var(--color-primary-700)', fontWeight: 600 }}>Facturation {psLabel.toLowerCase()}</td>
+                          <td className="exd-meta-cell">Paiement aménagé</td>
+                          <td className="exd-amount" style={{ color: 'var(--color-primary-700)', fontWeight: 600 }}>
+                            {formatEUR(Math.round(recurringYear2 / (paymentSchedule === 'quarterly' ? 4 : 2)))} <span>/ {paymentSchedule === 'quarterly' ? 'trimestre' : 'semestre'}</span>
+                          </td>
+                        </tr>
+                      }
+                    </>}
                     {monthsCount > 0 &&
                   <tr>
                         <td>{monthsCount} mois offert{monthsCount > 1 ? 's' : ''}</td>

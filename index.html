@@ -5551,7 +5551,7 @@ const COMM_RH_OPTIONS = [
     initials: 'DL',
     logoUrl: 'https://www.google.com/s2/favicons?domain=deeplensagency.com&sz=128',
     desc: 'Interviews vidéo authentiques de vos collaborateurs et managers pour incarner votre culture d\'entreprise et vous démarquer sur un marché du recrutement concurrentiel.',
-    price: 0,
+    price: null,
     priceUnit: 'Mise en relation',
     longDesc: 'À l\'heure où les candidats font leur choix avant même le premier entretien, votre site carrière est votre première vitrine. Deeplens Agency vous accompagne dans la création d\'interviews vidéo authentiques de vos collaborateurs et managers — pour incarner votre culture d\'entreprise, donner envie de vous rejoindre, et vous démarquer sur un marché du recrutement concurrentiel.',
     benefits: [
@@ -6589,6 +6589,7 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
   const isSocle = content.type === 'socle';
   const isCSM = content.type === 'csm';
   const isPack = content.type === 'pack';
+  const isCommRH = content.type === 'commrh';
   const isOption = content.type === 'internal' || content.type === 'external';
 
   const data = content.data;
@@ -6605,11 +6606,12 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
               {isPack && <><span className="ico" style={{ fontSize: 14 }}>{data.icon}</span>Pack stratégique</>}
               {content.type === 'internal' && <><span className="ico" style={{ fontSize: 14 }}>{data.icon}</span>Catalogue interne</>}
               {content.type === 'external' && <><span className="ico" style={{ fontSize: 14 }}>hub</span>{data.partner}</>}
+              {isCommRH && <><span className="ico" style={{ fontSize: 14 }}>campaign</span>{data.partner}</>}
             </div>
             <h3>
               {isSocle && 'Socle fonctionnel Flatchr'}
               {isCSM && 'Accompagnement CSM'}
-              {(isPack || isOption) && data.name}
+              {(isPack || isOption || isCommRH) && data.name}
             </h3>
           </div>
           <button className="icon-btn" onClick={onClose} aria-label="Fermer">
@@ -6826,6 +6828,57 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
                 </div>
             }
             </>
+          }
+
+          {/* ─── COMM RH ─── */}
+          {isCommRH &&
+          <>
+            <div className="drawer-tabs">
+              <button className={tab === 'overview' ? 'active' : ''} onClick={() => setTab('overview')}>Aperçu</button>
+              <button className={tab === 'benefits' ? 'active' : ''} onClick={() => setTab('benefits')}>Bénéfices</button>
+            </div>
+            {tab === 'overview' &&
+              <>
+                <div className="section-block">
+                  <h4>Description</h4>
+                  <p className="desc-text">{data.longDesc}</p>
+                </div>
+                <div className="section-block">
+                  <h4>Tarif & conditions</h4>
+                  <div style={{ padding: 16, background: 'var(--color-neutral-50)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--r-8)' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-neutral-800)' }}>Modalité</span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--color-secondary-500)' }}>{data.priceUnit}</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 12, color: 'var(--color-neutral-800)', lineHeight: 1.5 }}>{data.conditions}</p>
+                  </div>
+                </div>
+              </>
+            }
+            {tab === 'benefits' &&
+              <div className="section-block">
+                <h4>Ce que cette option vous apporte</h4>
+                <ul className="benefits-list">
+                  {data.benefits && data.benefits.map((b, i) =>
+                    <li key={i}><span className="ico">check_circle</span>{b}</li>
+                  )}
+                </ul>
+                {data.agencies &&
+                  <div className="agency-list">
+                    <h4 style={{ marginTop: 4 }}>Notre réseau d'agences RH</h4>
+                    <div className="agency-grid">
+                      {data.agencies.map((a, i) =>
+                        <a key={i} href={a.url} target="_blank" rel="noopener" className="agency-chip">
+                          <span>{a.name}</span>
+                          <span className="ico">open_in_new</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </>
           }
         </div>
 

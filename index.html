@@ -6068,7 +6068,7 @@ const SummaryCard = ({ state, actions }) => {
     effectif, packs, isCustom, accountType, multiAccountQty,
     tierDiscountActive, downgradeTier, fullSoclePrice, soclePrice, packPrice,
     internalItems, externalItems, oneShotTotal, recurringInternalItems, oneShotItems,
-    recurringYear2, monthsCount, extendedMonths, firstYearTotal, splitYears
+    recurringYear2, monthsCount, extendedMonths, firstYearTotal, splitYears, recurringSubtotal
   } = q;
 
   return (
@@ -6097,10 +6097,17 @@ const SummaryCard = ({ state, actions }) => {
 
           <div className="price-row muted">
             <div className="label">
-              <span className="ico" style={{ fontSize: 18, color: 'var(--color-success-500)' }}>verified</span>
-              <div><div className="key">Accompagnement CSM</div><div className="meta">Inclus dans le socle</div></div>
+              <span className="ico" style={{ fontSize: 18, color: recurringSubtotal > 0 && recurringSubtotal < 5000 ? 'var(--color-neutral-500)' : 'var(--color-success-500)' }}>
+                {recurringSubtotal > 0 && recurringSubtotal < 5000 ? 'support' : 'verified'}
+              </span>
+              <div>
+                <div className="key">{recurringSubtotal > 0 && recurringSubtotal < 5000 ? 'Accompagnement light' : 'Accompagnement CSM'}</div>
+                <div className="meta">{recurringSubtotal > 0 && recurringSubtotal < 5000 ? 'Prise en main de l\'outil' : 'Inclus dans le socle'}</div>
+              </div>
             </div>
-            <div className="value" style={{ color: 'var(--color-success-500)' }}>Inclus</div>
+            <div className="value" style={{ color: recurringSubtotal > 0 && recurringSubtotal < 5000 ? 'var(--color-neutral-500)' : 'var(--color-success-500)' }}>
+              {recurringSubtotal > 0 && recurringSubtotal < 5000 ? 'Light' : 'Inclus'}
+            </div>
           </div>
 
           {packs.map(p => {
@@ -6940,7 +6947,7 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
     fullSoclePrice, soclePrice, packPrice, internalItems, externalItems, oneShotTotal,
     recurringInternalItems, oneShotItems,
     offeredItems, offeredValue, pctDiscount, pctDiscountY1, assoc1901Discount, discountAmount,
-    recurringYear2, monthsCount, extendedMonths, tierYear1Saving, firstYearBase, firstYearTotal, splitYears
+    recurringYear2, monthsCount, extendedMonths, tierYear1Saving, firstYearBase, firstYearTotal, splitYears, recurringSubtotal
   } = q;
 
   const today = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date());
@@ -7098,8 +7105,8 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                       </td>
                     </tr>
                     <tr>
-                      <td>Accompagnement CSM</td>
-                      <td className="exd-meta-cell">Inclus dans le socle</td>
+                      <td>{recurringSubtotal > 0 && recurringSubtotal < 5000 ? 'Accompagnement light' : 'Accompagnement CSM'}</td>
+                      <td className="exd-meta-cell">{recurringSubtotal > 0 && recurringSubtotal < 5000 ? 'Prise en main de l\'outil' : 'Inclus dans le socle'}</td>
                       <td className="exd-amount exd-included">Inclus</td>
                     </tr>
                     {packs.map(p => {

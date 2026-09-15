@@ -6289,46 +6289,74 @@ const SocleSection = ({ effectif, accountType, onOpen }) => {
 };
 
 // ─── CSM Section ─────────────────────────────────────────────
-const CSMSection = ({ onOpen }) =>
-<section className="section" id="csm" data-screen-label="03 CSM">
+const CSMSection = ({ onOpen, recurringSubtotal }) => {
+  const isLight = recurringSubtotal > 0 && recurringSubtotal < 5000;
+  return (
+  <section className="section" id="csm" data-screen-label="03 CSM">
     <SectionHead
-    label="Inclus dans le socle"
-    title="Votre accompagnement CSM"
-    sub="Un Customer Success Manager dédié à vos côtés toute l'année : kick-off, points de pilotage, ateliers, bilan annuel." />
-  
-    <div className="csm-card">
-      <div className="csm-card-top">
-        <div className="header-block">
-          <div className="label" data-comment-anchor="b07a3145f1-div-521-11" style={{ color: "rgb(255, 255, 255)" }}>Suivi annuel personnalisé</div>
-          <h3>3 phases pour maximiser votre ROI</h3>
-          <p className="desc">
-            Votre CSM vous accompagne sur l'année complète : structuration de votre setup, optimisation continue, puis bilan stratégique.
+      label="Inclus dans le socle"
+      title={isLight ? 'Accompagnement light' : 'Votre accompagnement CSM'}
+      sub={isLight
+        ? 'Une prise en main guidée de Flatchr par votre équipe Sales ou CSM pour démarrer efficacement.'
+        : "Un Customer Success Manager dédié à vos côtés toute l'année : kick-off, points de pilotage, ateliers, bilan annuel."} />
+
+    {isLight ? (
+      <div style={{
+        background: 'var(--color-neutral-100)',
+        border: '1px solid var(--color-neutral-200)',
+        borderRadius: 12,
+        padding: '28px 32px',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 20
+      }}>
+        <span className="ico" style={{ fontSize: 32, color: 'var(--color-neutral-400)', flexShrink: 0, marginTop: 2 }}>support_agent</span>
+        <div>
+          <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 6, color: 'var(--color-neutral-800)' }}>Accompagnement light — Prise en main de l'outil</div>
+          <p style={{ margin: 0, color: 'var(--color-neutral-600)', fontSize: 14, lineHeight: 1.6 }}>
+            Pour les contrats inférieurs à 5 000 € / an, l'accompagnement est assuré en mode light par votre interlocuteur Sales ou CSM : onboarding, configuration initiale et activation des premières offres.
+          </p>
+          <p style={{ margin: '10px 0 0', color: 'var(--color-neutral-500)', fontSize: 13 }}>
+            Un accompagnement CSM complet (3 phases, suivi annuel, QBR) est inclus à partir de 5 000 € / an.
           </p>
         </div>
-        <div className="badge-included">
-          <span className="ico" style={{ fontSize: 14 }}>verified</span>Inclus
-        </div>
       </div>
-
-      <div className="csm-timeline">
-        {CSM_PHASES.map((p) =>
-      <div className="csm-phase" key={p.id}>
-            <div className="csm-phase-num">{p.label}</div>
-            <div className="csm-phase-period">{p.period}</div>
-            <h4>{p.title}{p.titleMeta && <span className="csm-phase-meta"> ({p.titleMeta})</span>}</h4>
-            <div className="desc">{p.desc}</div>
-            <div className="actions">
-              {p.actions.map((a, i) => <span className="pill" key={i}>{a}</span>)}
-            </div>
+    ) : (
+      <div className="csm-card">
+        <div className="csm-card-top">
+          <div className="header-block">
+            <div className="label" style={{ color: 'rgb(255, 255, 255)' }}>Suivi annuel personnalisé</div>
+            <h3>3 phases pour maximiser votre ROI</h3>
+            <p className="desc">
+              Votre CSM vous accompagne sur l'année complète : structuration de votre setup, optimisation continue, puis bilan stratégique.
+            </p>
           </div>
-      )}
-      </div>
+          <div className="badge-included">
+            <span className="ico" style={{ fontSize: 14 }}>verified</span>Inclus
+          </div>
+        </div>
 
-      <button className="discover-link" onClick={onOpen} style={{ border: 0, background: 'transparent', padding: 0 }}>
-        Découvrir tous les services CSM inclus <span className="ico">arrow_forward</span>
-      </button>
-    </div>
-  </section>;
+        <div className="csm-timeline">
+          {CSM_PHASES.map((p) =>
+            <div className="csm-phase" key={p.id}>
+              <div className="csm-phase-num">{p.label}</div>
+              <div className="csm-phase-period">{p.period}</div>
+              <h4>{p.title}{p.titleMeta && <span className="csm-phase-meta"> ({p.titleMeta})</span>}</h4>
+              <div className="desc">{p.desc}</div>
+              <div className="actions">
+                {p.actions.map((a, i) => <span className="pill" key={i}>{a}</span>)}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <button className="discover-link" onClick={onOpen} style={{ border: 0, background: 'transparent', padding: 0 }}>
+          Découvrir tous les services CSM inclus <span className="ico">arrow_forward</span>
+        </button>
+      </div>
+    )}
+  </section>);
+};
 
 
 // ─── Packs Section ───────────────────────────────────────────
@@ -7380,7 +7408,7 @@ const App = () => {
         <main className="content">
           <SectionNav active={activeSection} onJump={jumpToSection} />
           <SocleSection effectif={effectif} accountType={accountType} onOpen={openSocle} />
-          <CSMSection onOpen={openCSM} />
+          <CSMSection onOpen={openCSM} recurringSubtotal={computeQuote(state).recurringSubtotal} />
           <PacksSection selectedPacks={selectedPacks} onSelect={actions.togglePack} onOpen={openPack} multiAccountQty={multiAccountQty} onMultiQty={setMultiAccountQty} />
           <InternalSection selected={internal} onToggle={actions.toggleInternal} onOpen={openOption} internalQty={internalQty} onSetQty={actions.setInternalQty} />
           <ConsomSection />

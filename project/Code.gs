@@ -77,7 +77,7 @@ function generatePresentation(data) {
   presentation.saveAndClose();
 
   try {
-    copy.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    copy.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
   } catch (e) {
     Logger.log('Partage impossible: ' + e.message);
   }

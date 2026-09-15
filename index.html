@@ -5640,13 +5640,19 @@ const computeQuote = (state) => {
   const {
     effectifId, accountType, selectedPacks, multiAccountQty,
     internal, internalQty, external, discountValue, discountType, monthsOffered,
-    tierUpgrade, offeredPresta, assoc1901
+    tierUpgrade, offeredPresta, assoc1901, reseauPricePerSite, reseauSiteCount
   } = state;
 
   const activeTiers = accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS;
   const effectif = activeTiers.find((e) => e.id === effectifId);
   const packs = PACKS.filter((p) => (selectedPacks || []).includes(p.id));
-  const isCustom = effectif?.custom;
+
+  const reseauPerSite = Number(reseauPricePerSite) || 0;
+  const reseauCount = Number(reseauSiteCount) || 0;
+  const reseauTotal = accountType === 'reseau' && reseauPerSite > 0 && reseauCount > 0 ? reseauPerSite * reseauCount : 0;
+  const isReseauCustom = accountType === 'reseau' && reseauTotal === 0;
+
+  const isCustom = effectif?.custom || isReseauCustom;
 
   // Remise d'un cran : facturer le palier inférieur (moins cher)
   const tierIdx = activeTiers.findIndex((t) => t.id === effectifId);
@@ -5656,8 +5662,8 @@ const computeQuote = (state) => {
   const downgradeSaving = canUpgrade ? effectif.price - downgradeTier.price : 0;
   const upgradePct = canUpgrade && effectif.price ? Math.round(downgradeSaving / effectif.price * 100) : 0;
 
-  const fullSoclePrice = isCustom ? null : effectif?.price ?? 0;
-  const soclePrice = isCustom ? null : tierDiscountActive ? downgradeTier.price : effectif?.price ?? 0;
+  const fullSoclePrice = isCustom ? null : accountType === 'reseau' ? reseauTotal : effectif?.price ?? 0;
+  const soclePrice = isCustom ? null : accountType === 'reseau' ? reseauTotal : tierDiscountActive ? downgradeTier.price : effectif?.price ?? 0;
   const packPrice = packs.reduce((sum, p) => sum + (p.id === 'multi' ? p.price * (multiAccountQty || 1) : p.price), 0);
 
   const internalItems = INTERNAL_OPTIONS.filter((o) => internal.includes(o.id)).map(o => {
@@ -5825,9 +5831,40 @@ const ConfigPanel = ({ state, actions, collapsed }) => {
         <div className="pricing-group">
           <div className="group-label"><span>{accountType === 'cabinet' ? 'Collaborateurs' : accountType === 'public' ? 'Nombre d\'habitants' : accountType === 'reseau' ? 'Type d\'offre' : 'Effectif salariés'}</span></div>
           {accountType === 'reseau' ? (
-            <div style={{ background: 'var(--color-primary-50)', border: '1.5px solid var(--color-primary-200)', borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-primary-700)' }}>Offre sur mesure · Contrat cadre</span>
-              <span style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>Tarification et conditions négociées au cas par cas.</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-neutral-500)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Prix / site (€ HT/an)</div>
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    placeholder="ex : 1 000"
+                    value={state.reseauPricePerSite}
+                    onChange={e => actions.setReseauPricePerSite(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--color-neutral-300)', fontSize: 13, background: 'var(--color-neutral-0)', color: 'var(--color-neutral-900)', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-neutral-500)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nb de sites</div>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="ex : 5"
+                    value={state.reseauSiteCount}
+                    onChange={e => actions.setReseauSiteCount(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--color-neutral-300)', fontSize: 13, background: 'var(--color-neutral-0)', color: 'var(--color-neutral-900)', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+              {state.reseauPricePerSite && state.reseauSiteCount && Number(state.reseauPricePerSite) > 0 && Number(state.reseauSiteCount) > 0 ? (
+                <div style={{ background: 'var(--color-primary-50)', border: '1px solid var(--color-primary-200)', borderRadius: 8, padding: '8px 12px', fontSize: 13, color: 'var(--color-primary-700)', fontWeight: 600 }}>
+                  Total socle : {formatEUR(Number(state.reseauPricePerSite) * Number(state.reseauSiteCount))} / an
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: 'var(--color-neutral-500)' }}>Renseignez le prix par site et le nombre de sites pour calculer le total.</div>
+              )}
             </div>
           ) : (
             <>
@@ -6083,11 +6120,12 @@ const SummaryCard = ({ state, actions }) => {
               <span className="ico" style={{ fontSize: 18, color: 'var(--color-primary-400)' }}>foundation</span>
               <div>
                 <div className="key">Socle fonctionnel</div>
-                <div className="meta">{!effectif ? 'Non sélectionné' : tierDiscountActive ? '1ère année facturée « ' + (accountType === 'cabinet' ? downgradeTier.cabinet : accountType === 'public' ? downgradeTier.label : downgradeTier.range) + ' »' : accountType === 'cabinet' ? effectif.cabinet : accountType === 'public' ? effectif.label + ' · ' + effectif.range + ' hab.' : effectif.range}</div>
+                <div className="meta">{accountType === 'reseau' ? (fullSoclePrice > 0 ? state.reseauSiteCount + ' site' + (Number(state.reseauSiteCount) > 1 ? 's' : '') + ' × ' + formatEUR(Number(state.reseauPricePerSite)) : 'Sur devis') : !effectif ? 'Non sélectionné' : tierDiscountActive ? '1ère année facturée « ' + (accountType === 'cabinet' ? downgradeTier.cabinet : accountType === 'public' ? downgradeTier.label : downgradeTier.range) + ' »' : accountType === 'cabinet' ? effectif.cabinet : accountType === 'public' ? effectif.label + ' · ' + effectif.range + ' hab.' : effectif.range}</div>
               </div>
             </div>
             <div className="value">
-              {!effectif ? <span style={{ color: 'var(--color-neutral-700)' }}>—</span> :
+              {accountType === 'reseau' ? (fullSoclePrice > 0 ? formatEUR(fullSoclePrice) : <span style={{ color: 'var(--color-neutral-700)' }}>Sur devis</span>) :
+              !effectif ? <span style={{ color: 'var(--color-neutral-700)' }}>—</span> :
               isCustom ? 'Sur devis' :
               formatEUR(fullSoclePrice ?? soclePrice)}
             </div>
@@ -7308,6 +7346,8 @@ const App = () => {
   const [tierUpgrade, setTierUpgrade] = useState(false);
   const [offeredPresta, setOfferedPresta] = useState([]);
   const [assoc1901, setAssoc1901] = useState(false);
+  const [reseauPricePerSite, setReseauPricePerSite] = useState('');
+  const [reseauSiteCount, setReseauSiteCount] = useState('');
 
   // ─── Actions ───────────────────────────────────────────────
   const actions = {
@@ -7341,6 +7381,8 @@ const App = () => {
     setCommitment,
     setTierUpgrade,
     setAssoc1901,
+    setReseauPricePerSite,
+    setReseauSiteCount,
     toggleOfferedPresta: (id) => setOfferedPresta((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]),
     openExport: () => setExportOpen(true)
   };
@@ -7348,7 +7390,8 @@ const App = () => {
   const state = {
     effectifId, accountType, selectedPacks, multiAccountQty,
     internal, internalQty, external, discountValue, discountType, monthsOffered,
-    paymentSchedule, commitment, tierUpgrade, offeredPresta, assoc1901
+    paymentSchedule, commitment, tierUpgrade, offeredPresta, assoc1901,
+    reseauPricePerSite, reseauSiteCount
   };
 
   const effectif = (accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS).find((e) => e.id === effectifId);

@@ -20,7 +20,7 @@ const computeQuote = (state) => {
   const {
     effectifId, accountType, selectedPack, multiAccountQty,
     internal, external, discountValue, discountType, monthsOffered,
-    tierUpgrade, offeredPresta, assoc1901
+    tierUpgrade, offeredPresta, assoc1901, siteTier
   } = state;
 
   const effectif = EFFECTIF_TIERS.find((e) => e.id === effectifId);
@@ -38,10 +38,22 @@ const computeQuote = (state) => {
   const fullSoclePrice = isCustom ? null : effectif?.price ?? 0;
   const soclePrice = isCustom ? null : tierDiscountActive ? downgradeTier.price : effectif?.price ?? 0;
   const packPrice = pack ? pack.id === 'multi' ? pack.price * (multiAccountQty || 1) : pack.price : 0;
+  const baseContractValue = (soclePrice ?? 0) + packPrice;
 
   const internalItems = INTERNAL_OPTIONS.filter((o) => internal.includes(o.id));
   const externalItems = EXTERNAL_OPTIONS.filter((o) => external.includes(o.id) && o.price !== null);
-  const recurringInternalItems = internalItems.filter((o) => o.recurring);
+
+  // Site Carrière: price depends on tier selected and contract value
+  const siteIncluded = baseContractValue >= 5000;
+  const siteEffectivePrice = !internal.includes('site') ? 0
+    : siteIncluded && siteTier === 'essentiel' ? 0
+    : siteIncluded && siteTier === 'accompagne' ? 500
+    : siteIncluded && siteTier === 'sur_mesure' ? 0
+    : 1800;
+
+  const recurringInternalItems = internalItems.filter((o) => o.recurring).map((o) =>
+    o.id === 'site' ? { ...o, price: siteEffectivePrice } : o
+  );
   const oneShotItems = internalItems.filter((o) => !o.recurring);
   const recurringInternalTotal = recurringInternalItems.reduce((s, o) => s + o.price, 0);
   const oneShotTotal = oneShotItems.reduce((s, o) => s + o.price, 0);
@@ -69,7 +81,8 @@ const computeQuote = (state) => {
   return {
     effectif, pack, isCustom, accountType, multiAccountQty,
     downgradeTier, canUpgrade, tierDiscountActive, downgradeSaving, upgradePct,
-    fullSoclePrice, soclePrice, packPrice,
+    fullSoclePrice, soclePrice, packPrice, baseContractValue,
+    siteIncluded, siteEffectivePrice,
     internalItems, externalItems, oneShotTotal, recurringInternalItems, oneShotItems, recurringInternalTotal,
     offeredItems, offeredValue, gestureValue,
     recurringSubtotal, pctDiscount, assoc1901Discount, discountAmount,
@@ -378,18 +391,29 @@ const SummaryCard = ({ state, actions }) => {
           <div className="empty-state">Sélectionnez l'effectif, des packs et options pour composer le devis.</div>
           }
 
-          {recurringInternalItems.map((o) =>
-          <div key={o.id} className="price-row">
-              <div className="label">
-                <span className="ico" style={{ fontSize: 18, color: 'var(--color-secondary-300)' }}>{o.icon}</span>
-                <div><div className="key">{o.name}</div><div className="meta">Récurrent · tous les ans</div></div>
+          {recurringInternalItems.map((o) => {
+            const isSite = o.id === 'site';
+            const siteTierLabel = state.siteTier === 'essentiel' ? 'Essentiel' : state.siteTier === 'accompagne' ? 'Accompagné' : state.siteTier === 'sur_mesure' ? 'Sur-mesure' : null;
+            const siteIsIncluded = isSite && o.price === 0 && state.siteTier === 'essentiel';
+            const siteIsSurMesure = isSite && state.siteTier === 'sur_mesure';
+            return (
+              <div key={o.id} className="price-row">
+                <div className="label">
+                  <span className="ico" style={{ fontSize: 18, color: 'var(--color-secondary-300)' }}>{o.icon}</span>
+                  <div>
+                    <div className="key">{o.name}{isSite && siteTierLabel ? <span style={{ fontWeight: 400, color: 'var(--color-neutral-700)', fontSize: 11, marginLeft: 4 }}>· {siteTierLabel}</span> : null}</div>
+                    <div className="meta">Récurrent · tous les ans</div>
+                  </div>
+                </div>
+                <div className="value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {siteIsIncluded ? <span style={{ color: 'var(--color-success-500)', fontWeight: 600, fontSize: 13 }}>Inclus</span>
+                    : siteIsSurMesure ? <span style={{ color: 'var(--color-neutral-700)', fontSize: 13 }}>Sur devis</span>
+                    : formatEUR(o.price)}
+                  <button className="remove-btn" onClick={() => actions.toggleInternal(o.id)} aria-label="Retirer"><span className="ico">close</span></button>
+                </div>
               </div>
-              <div className="value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {formatEUR(o.price)}
-                <button className="remove-btn" onClick={() => actions.toggleInternal(o.id)} aria-label="Retirer"><span className="ico">close</span></button>
-              </div>
-            </div>
-          )}
+            );
+          })}
 
           {oneShotItems.map((o) =>
           <div key={o.id} className="price-row">
@@ -623,39 +647,48 @@ const PacksSection = ({ selectedPack, onSelect, onOpen, multiAccountQty, onMulti
 
 
 // ─── Internal options Section ────────────────────────────────
-const InternalSection = ({ selected, onToggle, onOpen }) =>
+const InternalSection = ({ selected, onToggle, onOpen, siteIncluded, siteTier }) =>
 <section className="section" id="interne" data-screen-label="05 Catalogue interne">
     <SectionHead
     label="Catalogue Produit Interne"
     title="Prestations Flatchr"
     sub="Configurations sur-mesure, formations et services techniques réalisés par nos équipes pour accélérer votre mise en route et votre ROI." />
-  
+
     <div className="options-grid">
-      {INTERNAL_OPTIONS.map((o) =>
-    <div
-      key={o.id}
-      className={'option-card' + (selected.includes(o.id) ? ' selected' : '')}
-      onClick={() => onOpen(o, 'internal')}>
-      
-          <div className="check-mark"><span className="ico">check</span></div>
-          <div className="icon-wrap"><span className="ico">{o.icon}</span></div>
-          <h4>{o.name}</h4>
-          <p className="desc">{o.desc}</p>
-          <div className="option-footer">
-            <div className="option-price" style={{ fontSize: "12px" }}>
-              {formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span>
+      {INTERNAL_OPTIONS.map((o) => {
+        const isSite = o.id === 'site';
+        const sitePriceDisplay = isSite && siteIncluded
+          ? (siteTier === 'essentiel' ? 'Inclus' : siteTier === 'accompagne' ? '500 €' : siteTier === 'sur_mesure' ? 'Sur devis' : 'Inclus dès 5 000 €')
+          : null;
+        const siteUnitDisplay = isSite && siteIncluded
+          ? (siteTier === 'accompagne' ? '/ atelier' : siteTier === 'sur_mesure' ? '' : siteTier === 'essentiel' ? '/ an' : '')
+          : null;
+        return (
+          <div
+            key={o.id}
+            className={'option-card' + (selected.includes(o.id) ? ' selected' : '')}
+            onClick={() => onOpen(o, 'internal')}>
+            <div className="check-mark"><span className="ico">check</span></div>
+            <div className="icon-wrap"><span className="ico">{o.icon}</span></div>
+            <h4>{o.name}</h4>
+            <p className="desc">{o.desc}</p>
+            <div className="option-footer">
+              <div className="option-price" style={{ fontSize: "12px" }}>
+                {sitePriceDisplay !== null
+                  ? <>{sitePriceDisplay} <span className="small" style={{ fontSize: "10px" }}>{siteUnitDisplay}</span></>
+                  : <>{formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span></>}
+              </div>
+              <button
+                className="option-toggle"
+                onClick={(e) => {e.stopPropagation(); if (isSite && siteIncluded) { onOpen(o, 'internal'); } else { onToggle(o.id); }}}
+                style={{ cursor: 'pointer' }}>
+                {selected.includes(o.id) ? 'Retirer' : (isSite && siteIncluded && !selected.includes(o.id) ? 'Choisir' : 'Ajouter')}
+                <span className="ico">{selected.includes(o.id) ? 'remove_circle_outline' : 'add_circle_outline'}</span>
+              </button>
             </div>
-            <button
-          className="option-toggle"
-          onClick={(e) => {e.stopPropagation();onToggle(o.id);}}
-          style={{ cursor: 'pointer' }}>
-          
-              {selected.includes(o.id) ? 'Retirer' : 'Ajouter'}
-              <span className="ico">{selected.includes(o.id) ? 'remove_circle_outline' : 'add_circle_outline'}</span>
-            </button>
           </div>
-        </div>
-    )}
+        );
+      })}
     </div>
   </section>;
 
@@ -779,7 +812,7 @@ const PackFeatureItem = ({ feature }) => {
 };
 
 // ─── Drawer ─────────────────────────────────────────────────
-const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
+const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onSetSiteTier, baseContractValue }) => {
   const [tab, setTab] = useState('overview');
   useEffect(() => {setTab('overview');}, [content?.id]);
 
@@ -944,7 +977,95 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
           {/* ─── OPTION (internal or external) ─── */}
           {isOption &&
           <>
-
+              {/* Site Carrière 3-tier view (contracts >= 5 000 €) */}
+              {content.id === 'site' && baseContractValue >= 5000 ? (() => {
+                const SITE_TIERS = [
+                  {
+                    id: 'essentiel',
+                    label: 'Essentiel',
+                    price: 0,
+                    priceLabel: 'Inclus dans votre contrat',
+                    ico: 'language',
+                    color: 'var(--color-success-500)',
+                    features: [
+                      'Template Flatchr dédié',
+                      'Site multi-page',
+                      'Photos & couleurs de votre marque',
+                      'SEO & GEO optimisé',
+                      'Hébergement inclus',
+                    ],
+                    conditions: 'Inclus pour les contrats annuels supérieurs à 5 000 € HT. Sinon, 1 800 € / an.',
+                  },
+                  {
+                    id: 'accompagne',
+                    label: 'Accompagné',
+                    price: 500,
+                    priceLabel: '500 € / atelier CSM',
+                    ico: 'support_agent',
+                    color: 'var(--color-primary-500)',
+                    features: [
+                      'Tout l\'offre Essentiel +',
+                      'Atelier de formation avec votre CSM',
+                      'Prise en main & gestion du site',
+                    ],
+                    conditions: 'Accès au site aux conditions de l\'offre Essentiel.',
+                  },
+                  {
+                    id: 'sur_mesure',
+                    label: 'Sur-mesure',
+                    price: null,
+                    priceLabel: 'Sur devis',
+                    ico: 'design_services',
+                    color: 'var(--color-secondary-500)',
+                    features: [
+                      'Tout l\'offre Accompagné +',
+                      'Design 100% personnalisé',
+                      'Pages et structure à la carte',
+                      'Expert partenaire Flatchr dédié',
+                    ],
+                    conditions: 'Prix et délai définis selon votre projet. Évolutions ultérieures sur devis.',
+                  },
+                ];
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '4px 0' }}>
+                    {SITE_TIERS.map((tier) => {
+                      const active = siteTier === tier.id;
+                      return (
+                        <div
+                          key={tier.id}
+                          onClick={() => onSetSiteTier(active ? null : tier.id)}
+                          style={{
+                            padding: 16,
+                            border: `2px solid ${active ? tier.color : 'var(--border-subtle)'}`,
+                            borderRadius: 'var(--r-8)',
+                            background: active ? 'var(--color-neutral-50)' : 'var(--bg-card)',
+                            cursor: 'pointer',
+                            transition: 'border-color 0.15s',
+                          }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span className="ico" style={{ fontSize: 18, color: tier.color }}>{tier.ico}</span>
+                              <strong style={{ fontSize: 14, color: 'var(--color-neutral-900)' }}>{tier.label}</strong>
+                              {active && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.06, textTransform: 'uppercase', color: tier.color, background: 'transparent', border: `1px solid ${tier.color}`, borderRadius: 'var(--r-pill)', padding: '1px 6px' }}>Sélectionné</span>}
+                            </div>
+                            <span style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: tier.color }}>{tier.priceLabel}</span>
+                          </div>
+                          <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            {tier.features.map((f, i) => (
+                              <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 13, color: 'var(--color-neutral-800)' }}>
+                                <span className="ico" style={{ fontSize: 15, color: 'var(--color-success-500)', flexShrink: 0, marginTop: 1 }}>check_circle</span>
+                                {f}
+                              </li>
+                            ))}
+                          </ul>
+                          <p style={{ margin: '8px 0 0', fontSize: 11, color: 'var(--color-neutral-700)', lineHeight: 1.4, fontStyle: 'italic' }}>{tier.conditions}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })() : (
+              <>
               <div className="drawer-tabs">
                 <button className={tab === 'overview' ? 'active' : ''} onClick={() => setTab('overview')}>Aperçu</button>
                 <button className={tab === 'benefits' ? 'active' : ''} onClick={() => setTab('benefits')}>Bénéfices</button>
@@ -1037,31 +1158,58 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
                 </div>
             }
             </>
+            )}
+            </>
           }
         </div>
 
         {/* ─── Drawer footer with action ─── */}
-        {(isPack || isOption) &&
-        <div className="drawer-foot">
-            <div>
-              <div style={{ fontSize: 11, color: 'var(--color-neutral-800)', fontWeight: 600, letterSpacing: 0.04, textTransform: 'uppercase' }}>{content.type === 'external' ? 'Modalité' : 'Tarif'}</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--color-secondary-500)' }} data-comment-anchor="40d6dc4bad-div-883-15">
-                {content.type === 'external' ?
-              data.price === null ? 'Sur devis' : <span style={{ fontSize: 16 }}>Mise en relation</span> :
-              data.price === null ? 'Sur devis' : <>{formatEUR(data.price)} <span style={{ fontSize: 13, color: 'var(--color-neutral-800)', fontWeight: 500 }}>{data.priceUnit}</span></>}
+        {(isPack || isOption) && (() => {
+          const isSite3Tier = content.id === 'site' && baseContractValue >= 5000;
+          if (isSite3Tier) {
+            const tierLabels = { essentiel: 'Inclus', accompagne: '500 € / atelier', sur_mesure: 'Sur devis' };
+            const tierLabel = siteTier ? tierLabels[siteTier] : null;
+            return (
+              <div className="drawer-foot">
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--color-neutral-800)', fontWeight: 600, letterSpacing: 0.04, textTransform: 'uppercase' }}>Offre sélectionnée</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--color-secondary-500)' }}>
+                    {siteTier ? <>{siteTier === 'essentiel' ? 'Essentiel' : siteTier === 'accompagne' ? 'Accompagné' : 'Sur-mesure'} · <span style={{ fontSize: 14, color: 'var(--color-neutral-800)', fontWeight: 500 }}>{tierLabel}</span></> : <span style={{ fontSize: 14, color: 'var(--color-neutral-700)', fontWeight: 400 }}>Choisir une offre ci-dessus</span>}
+                  </div>
+                </div>
+                <button
+                  className={'btn ' + (isSelected ? 'btn-tertiary' : 'btn-primary')}
+                  disabled={!siteTier && !isSelected}
+                  onClick={() => onToggleSelection()}
+                  style={!siteTier && !isSelected ? { opacity: 0.4, cursor: 'not-allowed' } : {}}>
+                  <span className="ico">{isSelected ? 'remove_circle_outline' : 'add_circle'}</span>
+                  {isSelected ? 'Retirer du devis' : 'Ajouter au devis'}
+                </button>
               </div>
-            </div>
-            {data.price !== null &&
-          <button
-            className={'btn ' + (isSelected ? 'btn-tertiary' : 'btn-primary')}
-            onClick={() => onToggleSelection()}>
-            
-                <span className="ico">{isSelected ? 'remove_circle_outline' : 'add_circle'}</span>
-                {isSelected ? 'Retirer du devis' : content.type === 'external' ? 'Ajouter à mon devis' : 'Ajouter au devis'}
-              </button>
+            );
           }
-          </div>
-        }
+          return (
+            <div className="drawer-foot">
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--color-neutral-800)', fontWeight: 600, letterSpacing: 0.04, textTransform: 'uppercase' }}>{content.type === 'external' ? 'Modalité' : 'Tarif'}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--color-secondary-500)' }} data-comment-anchor="40d6dc4bad-div-883-15">
+                  {content.type === 'external' ?
+                data.price === null ? 'Sur devis' : <span style={{ fontSize: 16 }}>Mise en relation</span> :
+                data.price === null ? 'Sur devis' : <>{formatEUR(data.price)} <span style={{ fontSize: 13, color: 'var(--color-neutral-800)', fontWeight: 500 }}>{data.priceUnit}</span></>}
+                </div>
+              </div>
+              {data.price !== null &&
+            <button
+              className={'btn ' + (isSelected ? 'btn-tertiary' : 'btn-primary')}
+              onClick={() => onToggleSelection()}>
+
+                  <span className="ico">{isSelected ? 'remove_circle_outline' : 'add_circle'}</span>
+                  {isSelected ? 'Retirer du devis' : content.type === 'external' ? 'Ajouter à mon devis' : 'Ajouter au devis'}
+                </button>
+            }
+            </div>
+          );
+        })()}
         {(isSocle || isCSM) &&
         <div className="drawer-foot">
             <div>
@@ -1396,13 +1544,18 @@ const App = () => {
   const [tierUpgrade, setTierUpgrade] = useState(false);
   const [offeredPresta, setOfferedPresta] = useState([]);
   const [assoc1901, setAssoc1901] = useState(false);
+  const [siteTier, setSiteTier] = useState(null);
 
   // ─── Actions ───────────────────────────────────────────────
   const actions = {
     setEffectif: setEffectifId,
     setAccountType,
     setPack: setSelectedPack,
-    toggleInternal: (id) => setInternal((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]),
+    toggleInternal: (id) => setInternal((prev) => {
+      const removing = prev.includes(id);
+      if (id === 'site' && removing) setSiteTier(null);
+      return removing ? prev.filter((x) => x !== id) : [...prev, id];
+    }),
     toggleExternal: (id) => setExternal((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]),
     setDiscountValue,
     setDiscountType,
@@ -1416,7 +1569,7 @@ const App = () => {
   const state = {
     effectifId, accountType, selectedPack, multiAccountQty,
     internal, external, discountValue, discountType, monthsOffered,
-    tierUpgrade, offeredPresta, assoc1901
+    tierUpgrade, offeredPresta, assoc1901, siteTier
   };
 
   const effectif = EFFECTIF_TIERS.find((e) => e.id === effectifId);
@@ -1476,7 +1629,7 @@ const App = () => {
           <SocleSection effectif={effectif} accountType={accountType} onOpen={openSocle} />
           <CSMSection onOpen={openCSM} />
           <PacksSection selectedPack={selectedPack} onSelect={setSelectedPack} onOpen={openPack} multiAccountQty={multiAccountQty} onMultiQty={setMultiAccountQty} />
-          <InternalSection selected={internal} onToggle={actions.toggleInternal} onOpen={openOption} />
+          <InternalSection selected={internal} onToggle={actions.toggleInternal} onOpen={openOption} siteIncluded={computeQuote(state).siteIncluded} siteTier={siteTier} />
           <ConsomSection />
           <ExternalSection selected={external} onToggle={actions.toggleExternal} onOpen={openOption} />
         </main>
@@ -1493,7 +1646,10 @@ const App = () => {
         content={drawerContent}
         onClose={closeDrawer}
         onToggleSelection={handleDrawerToggleSelection}
-        isSelected={isDrawerSelected} />
+        isSelected={isDrawerSelected}
+        siteTier={siteTier}
+        onSetSiteTier={setSiteTier}
+        baseContractValue={computeQuote(state).baseContractValue} />
       
       <ExportModal
         open={exportOpen}

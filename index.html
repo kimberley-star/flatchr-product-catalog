@@ -5640,7 +5640,7 @@ const computeQuote = (state) => {
   const {
     effectifId, accountType, selectedPacks, multiAccountQty,
     internal, internalQty, external, discountValue, discountType, monthsOffered,
-    tierUpgrade, offeredPresta, assoc1901, reseauPricePerSite, reseauSiteCount
+    tierUpgrade, offeredPresta, assoc1901, reseauPricePerSite, reseauSiteCount, siteTier
   } = state;
 
   const activeTiers = accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS;
@@ -5665,13 +5665,21 @@ const computeQuote = (state) => {
   const fullSoclePrice = isCustom ? null : accountType === 'reseau' ? reseauTotal : effectif?.price ?? 0;
   const soclePrice = isCustom ? null : accountType === 'reseau' ? reseauTotal : tierDiscountActive ? downgradeTier.price : effectif?.price ?? 0;
   const packPrice = packs.reduce((sum, p) => sum + (p.id === 'multi' ? p.price * (multiAccountQty || 1) : p.price), 0);
+  const baseContractValue = (soclePrice ?? 0) + packPrice;
+  const siteIncluded = baseContractValue >= 5000;
 
   const internalItems = INTERNAL_OPTIONS.filter((o) => internal.includes(o.id)).map(o => {
     const qty = (o.quantifiable && internalQty && internalQty[o.id]) ? internalQty[o.id] : 1;
     return { ...o, qty, unitPrice: o.price, price: o.price * qty };
   });
   const externalItems = EXTERNAL_OPTIONS.filter((o) => external.includes(o.id) && o.price !== null);
-  const recurringInternalItems = internalItems.filter((o) => o.recurring);
+  const recurringInternalItems = internalItems.filter((o) => o.recurring).map((o) => {
+    if (o.id === 'site' && siteIncluded) {
+      const sitePrice = siteTier === 'accompagne' ? 500 : 0;
+      return { ...o, price: sitePrice };
+    }
+    return o;
+  });
   const oneShotItems = internalItems.filter((o) => !o.recurring);
   const recurringInternalTotal = recurringInternalItems.reduce((s, o) => s + o.price, 0);
   const oneShotTotal = oneShotItems.reduce((s, o) => s + o.price, 0);
@@ -5709,7 +5717,7 @@ const computeQuote = (state) => {
   return {
     effectif, packs, isCustom, accountType, multiAccountQty,
     downgradeTier, canUpgrade, tierDiscountActive, downgradeSaving, upgradePct,
-    fullSoclePrice, soclePrice, packPrice,
+    fullSoclePrice, soclePrice, packPrice, baseContractValue, siteIncluded,
     internalItems, externalItems, oneShotTotal, recurringInternalItems, oneShotItems, recurringInternalTotal,
     offeredItems, offeredValue, gestureValue,
     recurringSubtotal, pctDiscount, pctDiscountY1, assoc1901Discount, discountAmount,
@@ -6426,7 +6434,7 @@ const PacksSection = ({ selectedPacks, onSelect, onOpen, multiAccountQty, onMult
 
 
 // ─── Internal options Section ────────────────────────────────
-const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty }) =>
+const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty, siteIncluded, siteTier }) =>
 <section className="section" id="interne" data-screen-label="05 Catalogue interne">
     <SectionHead
     label="Catalogue Produit Interne"
@@ -6448,7 +6456,12 @@ const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty }) 
           <p className="desc">{o.desc}</p>
           <div className="option-footer">
             <div className="option-price" style={{ fontSize: "12px" }}>
-              {formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span>
+              {o.id === 'site' && siteIncluded
+                ? <><span style={{ color: 'var(--color-secondary-500)', fontWeight: 700 }}>
+                    {siteTier === 'accompagne' ? '500 €' : siteTier === 'sur_mesure' ? 'Sur devis' : 'Inclus'}
+                  </span> <span className="small" style={{ fontSize: "10px" }}>{siteTier === 'accompagne' ? '/ atelier CSM' : '/ an'}</span></>
+                : <>{formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span></>
+              }
             </div>
             {o.quantifiable && isSelected ? (
               <div className="option-stepper" onClick={e => e.stopPropagation()}>
@@ -6628,7 +6641,7 @@ const PackFeatureItem = ({ feature }) => {
 };
 
 // ─── Drawer ─────────────────────────────────────────────────
-const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
+const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onSiteTierChange, siteIncluded }) => {
   const [tab, setTab] = useState('overview');
   useEffect(() => {setTab('overview');}, [content?.id]);
 
@@ -6797,6 +6810,51 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
                     <h4>Description</h4>
                     <p className="desc-text">{data.longDesc}</p>
                   </div>
+                  {data.id === 'site' && siteIncluded ? (
+                    <div className="section-block">
+                      <h4>Formule Site Carrière</h4>
+                      <p className="desc-text" style={{ marginBottom: 12 }}>Votre contrat ≥ 5 000 €/an — le Site Carrière est inclus. Choisissez votre niveau d'accompagnement :</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {[
+                          { id: 'essentiel', label: 'Essentiel', price: '0 €', sub: '/ an · Inclus', desc: 'Accès complet à la plateforme Site Carrière. Configuration autonome via l\'interface drag & drop.' },
+                          { id: 'accompagne', label: 'Accompagné', price: '500 €', sub: '/ atelier CSM', desc: 'Un atelier de configuration dédié avec votre CSM pour un lancement optimisé et personnalisé.' },
+                          { id: 'sur_mesure', label: 'Sur-mesure', price: 'Sur devis', sub: '', desc: 'Développement et intégration avancée réalisés par l\'équipe Flatchr selon vos besoins spécifiques.' },
+                        ].map((tier) => (
+                          <div
+                            key={tier.id}
+                            onClick={() => onSiteTierChange(tier.id)}
+                            style={{
+                              padding: '12px 16px',
+                              border: `2px solid ${siteTier === tier.id ? 'var(--color-secondary-500)' : 'var(--border-subtle)'}`,
+                              borderRadius: 'var(--r-8)',
+                              background: siteTier === tier.id ? 'var(--color-secondary-50, #f0f7ff)' : 'var(--color-neutral-50)',
+                              cursor: 'pointer',
+                              display: 'flex', alignItems: 'flex-start', gap: 12
+                            }}>
+                            <div style={{ marginTop: 3 }}>
+                              <div style={{
+                                width: 18, height: 18, borderRadius: '50%',
+                                border: `2px solid ${siteTier === tier.id ? 'var(--color-secondary-500)' : 'var(--color-neutral-400)'}`,
+                                background: siteTier === tier.id ? 'var(--color-secondary-500)' : 'transparent',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                              }}>
+                                {siteTier === tier.id && <span className="ico" style={{ fontSize: 12, color: '#fff' }}>check</span>}
+                              </div>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
+                                <strong style={{ fontSize: 14 }}>{tier.label}</strong>
+                                <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--color-secondary-500)' }}>
+                                  {tier.price}<span style={{ fontSize: 11, fontWeight: 400, color: 'var(--color-neutral-800)', marginLeft: 3 }}>{tier.sub}</span>
+                                </span>
+                              </div>
+                              <p style={{ margin: 0, fontSize: 12, color: 'var(--color-neutral-800)', lineHeight: 1.4 }}>{tier.desc}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
                   <div className="section-block">
                     <h4>Tarif & conditions</h4>
                     <div style={{
@@ -6820,6 +6878,7 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected }) => {
                       </p>
                     </div>
                   </div>
+                  )}
                 </>
             }
 
@@ -7323,6 +7382,7 @@ const App = () => {
   const [assoc1901, setAssoc1901] = useState(false);
   const [reseauPricePerSite, setReseauPricePerSite] = useState('');
   const [reseauSiteCount, setReseauSiteCount] = useState('');
+  const [siteTier, setSiteTier] = useState(null);
 
   // ─── Actions ───────────────────────────────────────────────
   const actions = {
@@ -7334,6 +7394,7 @@ const App = () => {
       const isQuantifiable = INTERNAL_OPTIONS.find(o => o.id === id)?.quantifiable;
       const isSelected = internal.includes(id);
       setInternal(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+      if (id === 'site' && isSelected) setSiteTier(null);
       if (isQuantifiable) {
         if (isSelected) setInternalQtyState(prev => { const n = {...prev}; delete n[id]; return n; });
         else setInternalQtyState(prev => ({...prev, [id]: 1}));
@@ -7366,9 +7427,10 @@ const App = () => {
     effectifId, accountType, selectedPacks, multiAccountQty,
     internal, internalQty, external, discountValue, discountType, monthsOffered,
     paymentSchedule, commitment, tierUpgrade, offeredPresta, assoc1901,
-    reseauPricePerSite, reseauSiteCount
+    reseauPricePerSite, reseauSiteCount, siteTier
   };
 
+  const { siteIncluded } = computeQuote(state);
   const effectif = (accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS).find((e) => e.id === effectifId);
 
   // ─── Section scroll spy ───────────────────────────────────
@@ -7426,7 +7488,7 @@ const App = () => {
           <SocleSection effectif={effectif} accountType={accountType} onOpen={openSocle} />
           <CSMSection onOpen={openCSM} recurringSubtotal={computeQuote(state).recurringSubtotal} />
           <PacksSection selectedPacks={selectedPacks} onSelect={actions.togglePack} onOpen={openPack} multiAccountQty={multiAccountQty} onMultiQty={setMultiAccountQty} />
-          <InternalSection selected={internal} onToggle={actions.toggleInternal} onOpen={openOption} internalQty={internalQty} onSetQty={actions.setInternalQty} />
+          <InternalSection selected={internal} onToggle={actions.toggleInternal} onOpen={openOption} internalQty={internalQty} onSetQty={actions.setInternalQty} siteIncluded={siteIncluded} siteTier={siteTier} />
           <ConsomSection />
           <ExternalSection selected={external} onToggle={actions.toggleExternal} onOpen={openOption} />
           <CommRHSection onOpen={openOption} />
@@ -7444,7 +7506,10 @@ const App = () => {
         content={drawerContent}
         onClose={closeDrawer}
         onToggleSelection={handleDrawerToggleSelection}
-        isSelected={isDrawerSelected} />
+        isSelected={isDrawerSelected}
+        siteTier={siteTier}
+        onSiteTierChange={(tier) => { setSiteTier(tier); if (!internal.includes('site')) actions.toggleInternal('site'); }}
+        siteIncluded={siteIncluded} />
       
       <ExportModal
         open={exportOpen}

@@ -5598,7 +5598,6 @@ const COMM_RH_OPTIONS = [
       margin: 400,
       note: 'Flatchr n\'achète pas la licence et n\'est pas revendeur : le client paie 800 € / an à NIXZ, qui reverse 400 € / an à Flatchr par client signé (accord de juillet 2026).',
     },
-    videoUrl: '',
     status: 'new',
   },
 ];
@@ -6840,7 +6839,7 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onS
               <div className="drawer-tabs">
                 <button className={tab === 'overview' ? 'active' : ''} onClick={() => setTab('overview')}>Aperçu</button>
                 <button className={tab === 'benefits' ? 'active' : ''} onClick={() => setTab('benefits')}>Bénéfices</button>
-                {(content.type !== 'external' && (data.id === 'site' || data.id === 'flatchr-skills')) || (content.type === 'external' && data.videoUrl) ? <button className={tab === 'video' ? 'active' : ''} onClick={() => setTab('video')} data-comment-anchor="a7dc608558-button-951-49">Vidéo</button> : null}
+                {content.type !== 'external' && (data.id === 'site' || data.id === 'flatchr-skills') && <button className={tab === 'video' ? 'active' : ''} onClick={() => setTab('video')} data-comment-anchor="a7dc608558-button-951-49">Vidéo</button>}
               </div>
 
               {tab === 'overview' &&
@@ -7020,9 +7019,7 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onS
                       height="100%"
                       src={data.id === 'flatchr-skills'
                         ? 'https://www.youtube.com/embed/dwmvQuZpPrk?autoplay=1'
-                        : data.videoUrl
-                          ? data.videoUrl.replace('watch?v=', 'embed/') + '?autoplay=1'
-                          : 'https://www.youtube.com/embed/qHKdMK0nwIQ?autoplay=1'}
+                        : 'https://www.youtube.com/embed/qHKdMK0nwIQ?autoplay=1'}
                       title={data.name}
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

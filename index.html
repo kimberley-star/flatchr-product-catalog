@@ -6839,7 +6839,7 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onS
               <div className="drawer-tabs">
                 <button className={tab === 'overview' ? 'active' : ''} onClick={() => setTab('overview')}>Aperçu</button>
                 <button className={tab === 'benefits' ? 'active' : ''} onClick={() => setTab('benefits')}>Bénéfices</button>
-                {content.type !== 'external' && data.id === 'site' && <button className={tab === 'video' ? 'active' : ''} onClick={() => setTab('video')} data-comment-anchor="a7dc608558-button-951-49">Vidéo</button>}
+                {content.type !== 'external' && (data.id === 'site' || data.id === 'flatchr-skills') && <button className={tab === 'video' ? 'active' : ''} onClick={() => setTab('video')} data-comment-anchor="a7dc608558-button-951-49">Vidéo</button>}
               </div>
 
               {tab === 'overview' &&
@@ -7012,8 +7012,10 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onS
                     <iframe
                       width="100%"
                       height="100%"
-                      src="https://www.youtube.com/embed/qHKdMK0nwIQ?autoplay=1"
-                      title="Site Carrière Flatchr"
+                      src={data.id === 'flatchr-skills'
+                        ? 'https://www.youtube.com/embed/dwmvQuZpPrk?autoplay=1'
+                        : 'https://www.youtube.com/embed/qHKdMK0nwIQ?autoplay=1'}
+                      title={data.name}
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen

@@ -6476,7 +6476,7 @@ const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty, si
               {o.id === 'site'
                 ? <><span style={{ color: 'var(--color-secondary-500)', fontWeight: 700 }}>
                     {siteIncluded && siteTier === 'accompagne' ? '500 €' : siteIncluded && siteTier === 'sur_mesure' ? 'Sur devis' : 'Inclus'}
-                  </span> <span className="small" style={{ fontSize: "10px" }}>{siteIncluded && siteTier === 'accompagne' ? '/ atelier CSM' : '/ an'}</span></>
+                  </span> {(siteIncluded && siteTier === 'accompagne') && <span className="small" style={{ fontSize: "10px" }}>/ atelier CSM</span>}</>
                 : <>{formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span></>
               }
             </div>

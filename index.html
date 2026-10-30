@@ -5267,7 +5267,7 @@ const INTERNAL_OPTIONS = [
     price: 1800,
     priceUnit: '/ an',
     recurring: true,
-    longDesc: 'Nous mettons à votre disposition un template de site carrière multi-page, directement connecté à Flatchr et personnalisable à vos couleurs et votre marque : pages métiers, témoignages collaborateurs (photos, vidéos), optimisation SEO. Pour aller au-delà du template et créer un site entièrement sur-mesure, un accompagnement dédié est nécessaire.',
+    longDesc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration en toute autonomie, aucun accompagnement CSM.',
     benefits: [
       'Design personnalisable avec vos couleurs et votre marque',
       'Multi-page illimité',
@@ -6863,10 +6863,10 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onS
                       <h4>Tarif & conditions</h4>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {[
-                          { id: 'essentiel_standard', label: 'Essentiel', price: '1 800 €', sub: '/ an', desc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration en toute autonomie.', badge: 'Contrat < 5 000 €/an' },
-                          { id: 'essentiel', label: 'Essentiel', price: 'Inclus', sub: '', desc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration en toute autonomie.', badge: 'Contrat ≥ 5 000 €/an' },
+                          { id: 'essentiel_standard', label: 'Essentiel', price: '1 800 €', sub: '/ an', desc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration en toute autonomie, aucun accompagnement CSM.', badge: 'Contrat < 5 000 €/an' },
+                          { id: 'essentiel', label: 'Essentiel', price: 'Inclus', sub: '', desc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration en toute autonomie, aucun accompagnement CSM.', badge: 'Contrat ≥ 5 000 €/an' },
                           { id: 'accompagne', label: 'Accompagné', price: '500 €', sub: '/ atelier CSM', desc: 'Un CSM Flatchr vous forme à l\'outil et vous accompagne dans la création de votre site. Tout en restant sur nos templates, vous personnalisez uniquement les couleurs, les photos, retirez des modules.', badge: null },
-                          { id: 'sur_mesure', label: 'Sur-mesure', price: 'Sur devis', sub: '', desc: 'Vous pouvez sortir du template et créer le site carrière de vos rêves, un expert technique vous accompagne spécifiquement pour rendre votre site responsive.', badge: null },
+                          { id: 'sur_mesure', label: 'Sur-mesure', price: 'Sur devis', sub: '', desc: 'Vous pouvez sortir du template et créer le site carrière de vos rêves, un expert technique vous accompagne spécifiquement pour rendre votre site responsive et respecter toutes les bonnes pratiques de référencement.', badge: null },
                         ].map((tier) => (
                           <div key={tier.id} onClick={() => onSiteTierChange(tier.id)} style={{
                             padding: '12px 16px',

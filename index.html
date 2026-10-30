@@ -5267,7 +5267,7 @@ const INTERNAL_OPTIONS = [
     price: 1800,
     priceUnit: '/ an',
     recurring: true,
-    longDesc: 'Au-delà de la page site carrière incluse dans le socle, nous mettons à votre disposition un outil puissant pour créer et gérer vos pages carrière en toute autonomie, directement connecté à Flatchr. Construisez un site multi-page via une interface drag & drop intuitive, sans compétences techniques. Adoptez la Marque Manager avec un design qui met en avant ce qui compte vraiment : vos équipes, des pages métiers, des témoignages collaborateurs (photos, vidéos). Votre site est également optimisé pour le SEO et les LLMs.',
+    longDesc: 'Nous mettons à votre disposition un template de site carrière multi-page, directement connecté à Flatchr et personnalisable à vos couleurs et votre marque : pages métiers, témoignages collaborateurs (photos, vidéos), optimisation SEO. Pour aller au-delà du template et créer un site entièrement sur-mesure, un accompagnement avec un freelance partenaire est disponible.',
     benefits: [
       'Design personnalisable avec vos couleurs et votre marque',
       'Multi-page illimité',
@@ -6473,10 +6473,10 @@ const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty, si
           <p className="desc">{o.desc}</p>
           <div className="option-footer">
             <div className="option-price" style={{ fontSize: "12px" }}>
-              {o.id === 'site' && siteIncluded
+              {o.id === 'site'
                 ? <><span style={{ color: 'var(--color-secondary-500)', fontWeight: 700 }}>
-                    {siteTier === 'accompagne' ? '500 €' : siteTier === 'sur_mesure' ? 'Sur devis' : 'Inclus'}
-                  </span> <span className="small" style={{ fontSize: "10px" }}>{siteTier === 'accompagne' ? '/ atelier CSM' : '/ an'}</span></>
+                    {siteIncluded && siteTier === 'accompagne' ? '500 €' : siteIncluded && siteTier === 'sur_mesure' ? 'Sur devis' : 'Inclus'}
+                  </span> <span className="small" style={{ fontSize: "10px" }}>{siteIncluded && siteTier === 'accompagne' ? '/ atelier CSM' : '/ an'}</span></>
                 : <>{formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span></>
               }
             </div>
@@ -6860,9 +6860,9 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onS
                       <p className="desc-text" style={{ marginBottom: 12 }}>Votre contrat ≥ 5 000 €/an — le Site Carrière est inclus. Choisissez votre niveau d'accompagnement :</p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {[
-                          { id: 'essentiel', label: 'Essentiel', price: '0 €', sub: '/ an · Inclus', desc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration autonome via l\'interface drag & drop.' },
-                          { id: 'accompagne', label: 'Accompagné', price: '500 €', sub: '/ atelier CSM', desc: 'Même template Flatchr personnalisé à vos couleurs et votre marque, avec un atelier CSM dédié pour vous accompagner dans la mise en place.' },
-                          { id: 'sur_mesure', label: 'Sur-mesure', price: 'Sur devis', sub: '', desc: 'Site carrière très poussé et entièrement personnalisé, développé sur-mesure par l\'équipe Flatchr selon vos besoins spécifiques.' },
+                          { id: 'essentiel', label: 'Essentiel', price: '0 €', sub: '/ an · Inclus', desc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration autonome en toute autonomie.' },
+                          { id: 'accompagne', label: 'Accompagné', price: '500 €', sub: '/ atelier CSM', desc: 'Un CSM Flatchr vous forme à l\'outil et vous accompagne dans la création de votre site. Tout en restant sur nos templates, vous personnalisez uniquement les couleurs, les photos, retirez des modules.' },
+                          { id: 'sur_mesure', label: 'Sur-mesure', price: 'Sur devis', sub: '', desc: 'Vous pouvez sortir du template et créer le site carrière de vos rêves, et un freelance vous accompagne pour les sujets responsive.' },
                         ].map((tier) => (
                           <div
                             key={tier.id}

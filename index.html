@@ -5658,7 +5658,7 @@ const computeQuote = (state) => {
   const {
     effectifId, accountType, selectedPacks, multiAccountQty,
     internal, internalQty, external, discountValue, discountType, monthsOffered,
-    tierUpgrade, offeredPresta, assoc1901, reseauPricePerSite, reseauSiteCount, siteTier
+    tierUpgrade, offeredPresta, assoc1901, reseauPricePerSite, reseauSiteCount, siteTier, commitment
   } = state;
 
   const activeTiers = accountType === 'public' ? EFFECTIF_PUBLIC_TIERS : EFFECTIF_TIERS;
@@ -5725,7 +5725,8 @@ const computeQuote = (state) => {
     : discountAmount;
   const firstYearBase = Math.max(0, recurringSubtotalY1 - pctDiscountY1);
   // Months offered extend the contract duration — they do NOT reduce the invoice price
-  const extendedMonths = monthsCount > 0 ? 12 + monthsCount : 12;
+  const baseCommitment = Number(commitment) || 12;
+  const extendedMonths = monthsCount > 0 ? baseCommitment + monthsCount : baseCommitment;
   const firstYearRecurring = firstYearBase;
   const firstYearTotal = firstYearRecurring + oneShotTotal;
 

@@ -5692,9 +5692,11 @@ const computeQuote = (state) => {
   });
   const externalItems = EXTERNAL_OPTIONS.filter((o) => external.includes(o.id) && o.price !== null);
   const recurringInternalItems = internalItems.filter((o) => o.recurring).map((o) => {
-    if (o.id === 'site' && siteIncluded) {
-      const sitePrice = siteTier === 'accompagne' ? 500 : siteTier === 'sur_mesure' ? null : 0;
-      return { ...o, price: sitePrice };
+    if (o.id === 'site') {
+      if (siteTier === 'sur_mesure') return { ...o, price: null };
+      if (siteTier === 'accompagne') return { ...o, price: 500 };
+      if (siteTier === 'essentiel' && siteIncluded) return { ...o, price: 0 };
+      return o;
     }
     return o;
   });
@@ -6662,8 +6664,7 @@ const PackFeatureItem = ({ feature }) => {
 // ─── Drawer ─────────────────────────────────────────────────
 const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onSiteTierChange, siteIncluded }) => {
   const [tab, setTab] = useState('overview');
-  const [siteLocalIncluded, setSiteLocalIncluded] = useState(siteIncluded);
-  useEffect(() => { setTab('overview'); setSiteLocalIncluded(siteIncluded); }, [content?.id, siteIncluded]);
+  useEffect(() => { setTab('overview'); }, [content?.id]);
 
   const open = !!content;
   if (!content) return null;
@@ -6860,67 +6861,45 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onS
                   ) : data.id === 'site' ? (
                     <div className="section-block">
                       <h4>Tarif & conditions</h4>
-                      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {[
-                          { val: false, label: 'Contrat < 5 000 €/an' },
-                          { val: true,  label: 'Contrat ≥ 5 000 €/an' },
-                        ].map(opt => (
-                          <button key={String(opt.val)} onClick={() => setSiteLocalIncluded(opt.val)} style={{
-                            flex: 1, padding: '8px 12px', borderRadius: 'var(--r-8)', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                            border: `2px solid ${siteLocalIncluded === opt.val ? 'var(--color-secondary-500)' : 'var(--border-subtle)'}`,
-                            background: siteLocalIncluded === opt.val ? 'var(--color-secondary-50, #f0f7ff)' : 'var(--color-neutral-50)',
-                            color: siteLocalIncluded === opt.val ? 'var(--color-secondary-500)' : 'var(--color-neutral-700)',
-                          }}>{opt.label}</button>
-                        ))}
-                      </div>
-                      {!siteLocalIncluded ? (
-                        <div style={{ padding: 16, background: 'var(--color-neutral-50)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--r-8)' }}>
-                          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
-                            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-neutral-800)' }}>Tarif</span>
-                            <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--color-secondary-500)' }}>
-                              {formatEUR(data.price)} <span style={{ fontSize: 13, color: 'var(--color-neutral-800)', fontWeight: 500 }}>{data.priceUnit}</span>
-                            </span>
-                          </div>
-                          <p style={{ margin: 0, fontSize: 12, color: 'var(--color-neutral-800)', lineHeight: 1.5 }}>{data.conditions}</p>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                          <p className="desc-text" style={{ marginBottom: 4, marginTop: 0 }}>Le Site Carrière est inclus. Choisissez votre niveau d'accompagnement :</p>
-                          {[
-                            { id: 'essentiel', label: 'Essentiel', price: '0 €', sub: '/ an · Inclus', desc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration en toute autonomie.' },
-                            { id: 'accompagne', label: 'Accompagné', price: '500 €', sub: '/ atelier CSM', desc: 'Un CSM Flatchr vous forme à l\'outil et vous accompagne dans la création de votre site. Tout en restant sur nos templates, vous personnalisez uniquement les couleurs, les photos, retirez des modules.' },
-                            { id: 'sur_mesure', label: 'Sur-mesure', price: 'Sur devis', sub: '', desc: 'Vous pouvez sortir du template et créer le site carrière de vos rêves, un expert technique vous accompagne spécifiquement pour rendre votre site responsive.' },
-                          ].map((tier) => (
-                            <div key={tier.id} onClick={() => onSiteTierChange(tier.id)} style={{
-                              padding: '12px 16px',
-                              border: `2px solid ${siteTier === tier.id ? 'var(--color-secondary-500)' : 'var(--border-subtle)'}`,
-                              borderRadius: 'var(--r-8)',
-                              background: siteTier === tier.id ? 'var(--color-secondary-50, #f0f7ff)' : 'var(--color-neutral-50)',
-                              cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 12
-                            }}>
-                              <div style={{ marginTop: 3 }}>
-                                <div style={{
-                                  width: 18, height: 18, borderRadius: '50%',
-                                  border: `2px solid ${siteTier === tier.id ? 'var(--color-secondary-500)' : 'var(--color-neutral-400)'}`,
-                                  background: siteTier === tier.id ? 'var(--color-secondary-500)' : 'transparent',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}>
-                                  {siteTier === tier.id && <span className="ico" style={{ fontSize: 12, color: '#fff' }}>check</span>}
-                                </div>
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
-                                  <strong style={{ fontSize: 14 }}>{tier.label}</strong>
-                                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--color-secondary-500)' }}>
-                                    {tier.price}<span style={{ fontSize: 11, fontWeight: 400, color: 'var(--color-neutral-800)', marginLeft: 3 }}>{tier.sub}</span>
-                                  </span>
-                                </div>
-                                <p style={{ margin: 0, fontSize: 12, color: 'var(--color-neutral-800)', lineHeight: 1.4 }}>{tier.desc}</p>
+                          { id: 'essentiel_standard', label: 'Essentiel', price: '1 800 €', sub: '/ an', desc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration en toute autonomie.', badge: 'Contrat < 5 000 €/an' },
+                          { id: 'essentiel', label: 'Essentiel', price: 'Inclus', sub: '', desc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration en toute autonomie.', badge: 'Contrat ≥ 5 000 €/an' },
+                          { id: 'accompagne', label: 'Accompagné', price: '500 €', sub: '/ atelier CSM', desc: 'Un CSM Flatchr vous forme à l\'outil et vous accompagne dans la création de votre site. Tout en restant sur nos templates, vous personnalisez uniquement les couleurs, les photos, retirez des modules.', badge: null },
+                          { id: 'sur_mesure', label: 'Sur-mesure', price: 'Sur devis', sub: '', desc: 'Vous pouvez sortir du template et créer le site carrière de vos rêves, un expert technique vous accompagne spécifiquement pour rendre votre site responsive.', badge: null },
+                        ].map((tier) => (
+                          <div key={tier.id} onClick={() => onSiteTierChange(tier.id)} style={{
+                            padding: '12px 16px',
+                            border: `2px solid ${siteTier === tier.id ? 'var(--color-secondary-500)' : 'var(--border-subtle)'}`,
+                            borderRadius: 'var(--r-8)',
+                            background: siteTier === tier.id ? 'var(--color-secondary-50, #f0f7ff)' : 'var(--color-neutral-50)',
+                            cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 12
+                          }}>
+                            <div style={{ marginTop: 3 }}>
+                              <div style={{
+                                width: 18, height: 18, borderRadius: '50%',
+                                border: `2px solid ${siteTier === tier.id ? 'var(--color-secondary-500)' : 'var(--color-neutral-400)'}`,
+                                background: siteTier === tier.id ? 'var(--color-secondary-500)' : 'transparent',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                              }}>
+                                {siteTier === tier.id && <span className="ico" style={{ fontSize: 12, color: '#fff' }}>check</span>}
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      )}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4, gap: 8 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <strong style={{ fontSize: 14 }}>{tier.label}</strong>
+                                  {tier.badge && <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 20, background: 'var(--color-neutral-200)', color: 'var(--color-neutral-600)' }}>{tier.badge}</span>}
+                                </div>
+                                <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--color-secondary-500)', whiteSpace: 'nowrap' }}>
+                                  {tier.price}<span style={{ fontSize: 11, fontWeight: 400, color: 'var(--color-neutral-800)', marginLeft: 3 }}>{tier.sub}</span>
+                                </span>
+                              </div>
+                              <p style={{ margin: 0, fontSize: 12, color: 'var(--color-neutral-800)', lineHeight: 1.4 }}>{tier.desc}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ) : (
                   <div className="section-block">

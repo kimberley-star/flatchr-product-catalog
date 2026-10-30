@@ -7142,6 +7142,12 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
     recurringYear2, monthsCount, extendedMonths, tierYear1Saving, firstYearBase, firstYearTotal, splitYears, recurringSubtotal
   } = q;
 
+  const recurringSubtotalY1 = Math.max(0, recurringSubtotal - tierYear1Saving);
+  const commercialDiscountY1 = discountType === 'percent'
+    ? Math.round(recurringSubtotalY1 * ((discountValue || 0) / 100))
+    : (discountValue || 0);
+  const assoc1901DiscountY1 = state.assoc1901 ? Math.round(recurringSubtotalY1 * 0.5) : 0;
+
   const today = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date());
 
   return (
@@ -7334,11 +7340,18 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                         <td className="exd-meta-cell">1ère année uniquement (−{upgradePct}%)</td>
                         <td className="exd-amount exd-negative">− {formatEUR(tierYear1Saving)}</td>
                       </tr>
-                      {pctDiscountY1 > 0 &&
+                      {commercialDiscountY1 > 0 &&
                         <tr className="exd-discount-row">
                           <td>Remise commerciale</td>
                           <td className="exd-meta-cell">{discountType === 'percent' ? `${discountValue} %` : formatEUR(discountValue)}</td>
-                          <td className="exd-amount exd-negative">− {formatEUR(pctDiscountY1)}</td>
+                          <td className="exd-amount exd-negative">− {formatEUR(commercialDiscountY1)}</td>
+                        </tr>
+                      }
+                      {assoc1901DiscountY1 > 0 &&
+                        <tr className="exd-discount-row">
+                          <td>Réduction association loi 1901</td>
+                          <td className="exd-meta-cell">−50 % sur l'abonnement</td>
+                          <td className="exd-amount exd-negative">− {formatEUR(assoc1901DiscountY1)}</td>
                         </tr>
                       }
                       <tr className="exd-subtotal">

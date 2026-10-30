@@ -5695,7 +5695,7 @@ const computeQuote = (state) => {
     if (o.id === 'site') {
       if (siteTier === 'sur_mesure') return { ...o, price: null };
       if (siteTier === 'accompagne') return { ...o, price: 500 };
-      if (siteTier === 'essentiel' && siteIncluded) return { ...o, price: 0 };
+      if (siteTier === 'essentiel') return { ...o, price: 0 };
       return o;
     }
     return o;

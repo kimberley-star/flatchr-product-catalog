@@ -5693,13 +5693,13 @@ const computeQuote = (state) => {
   const externalItems = EXTERNAL_OPTIONS.filter((o) => external.includes(o.id) && o.price !== null);
   const recurringInternalItems = internalItems.filter((o) => o.recurring).map((o) => {
     if (o.id === 'site' && siteIncluded) {
-      const sitePrice = siteTier === 'accompagne' ? 500 : 0;
+      const sitePrice = siteTier === 'accompagne' ? 500 : siteTier === 'sur_mesure' ? null : 0;
       return { ...o, price: sitePrice };
     }
     return o;
   });
   const oneShotItems = internalItems.filter((o) => !o.recurring);
-  const recurringInternalTotal = recurringInternalItems.reduce((s, o) => s + o.price, 0);
+  const recurringInternalTotal = recurringInternalItems.reduce((s, o) => s + (o.price ?? 0), 0);
   const oneShotTotal = oneShotItems.reduce((s, o) => s + o.price, 0);
 
   const offeredItems = INTERNAL_OPTIONS.filter((o) => (offeredPresta || []).includes(o.id));
@@ -6195,7 +6195,7 @@ const SummaryCard = ({ state, actions }) => {
                 <div><div className="key">{o.name}</div><div className="meta">Récurrent · tous les ans</div></div>
               </div>
               <div className="value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {formatEUR(o.price)}
+                {o.price === null ? <span style={{ color: 'var(--color-neutral-700)' }}>Sur devis</span> : formatEUR(o.price)}
                 <button className="remove-btn" onClick={() => actions.toggleInternal(o.id)} aria-label="Retirer"><span className="ico">close</span></button>
               </div>
             </div>
@@ -7302,7 +7302,7 @@ const ExportModal = ({ open, onClose, state, effectif }) => {
                   <tr key={'ri-' + o.id}>
                         <td>{o.name}</td>
                         <td className="exd-meta-cell">Récurrent · tous les ans</td>
-                        <td className="exd-amount">{formatEUR(o.price)} <span>/ an</span></td>
+                        <td className="exd-amount">{o.price === null ? 'Sur devis' : <>{formatEUR(o.price)} <span>/ an</span></>}</td>
                       </tr>
                   )}
                     {tierDiscountActive ? <>

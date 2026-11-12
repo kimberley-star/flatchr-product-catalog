@@ -5280,6 +5280,29 @@ const INTERNAL_OPTIONS = [
     status: 'new',
   },
   {
+    id: 'noota',
+    name: 'Transcription IA des entretiens',
+    icon: 'subtitles',
+    desc: 'Enregistrement, transcription et résumé IA de vos entretiens visio, synchronisés dans la fiche candidat Flatchr.',
+    price: null,
+    priceUnit: '',
+    recurring: true,
+    longDesc: 'Noota se branche sur Google Meet, Teams ou Zoom : enregistre, transcrit, résume vos entretiens et identifie les compétences détectées. En tant que revendeur officiel, Flatchr propose Noota avec intégration native directement dans la fiche candidat.',
+    benefits: [
+      'Transcription automatique multilingue',
+      'Résumé IA des points clés',
+      'Détection des soft skills',
+      'Synchro Google Meet / Teams / Zoom',
+      'Fiche candidat enrichie automatiquement',
+    ],
+    pricingDetails: [
+      { label: 'Plan Pro', price: '29 €', unit: '/ utilisateur / mois', detail: 'Pour les petites équipes · 1 000 min/mois · Équipe max 10 · Emails IA · Téléphonie d\'entreprise · Intégrations illimitées' },
+      { label: 'Plan Business', price: '49 €', unit: '/ utilisateur / mois', detail: 'Pour les entreprises en croissance · Enregistrement illimité · Équipe illimitée · Fonctionnalités IA illimitées · Zapier & API · Analyses' },
+    ],
+    conditions: 'Revendeur officiel Noota. Facturation via Flatchr. Tarifs HT par utilisateur par mois.',
+    status: 'new',
+  },
+  {
     id: 'powerbi',
     name: 'Connexion Power BI',
     icon: 'analytics',
@@ -5354,28 +5377,6 @@ const EXTERNAL_OPTIONS = [
       'Conformité RGPD garantie',
     ],
     conditions: 'Tarif partenaire. Volume illimité de tests sur la durée du contrat.',
-    status: 'partner',
-  },
-  {
-    id: 'noota',
-    name: 'Transcription IA',
-    partner: 'Noota',
-    icon: 'subtitles',
-    color: 'blue',
-    initials: 'No',
-    logoUrl: 'https://www.google.com/s2/favicons?domain=noota.io&sz=128',
-    desc: 'Enregistrement, transcription et analyse IA de vos entretiens visio pour ne plus prendre de notes.',
-    price: 1200,
-    priceUnit: '/ an',
-    longDesc: 'Noota se branche sur Google Meet, Teams ou Zoom : enregistre, transcrit, résume vos entretiens et identifie les compétences détectées. Tout est synchronisé dans la fiche candidat Flatchr.',
-    benefits: [
-      'Transcription automatique multilingue',
-      'Résumé IA des points clés',
-      'Détection des soft skills',
-      'Synchro Google Meet / Teams / Zoom',
-      'Fiche candidat enrichie automatiquement',
-    ],
-    conditions: 'Tarif partenaire. Inclut 200h d\'enregistrement / an / utilisateur.',
     status: 'partner',
   },
   {
@@ -6481,6 +6482,8 @@ const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty, si
                 ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 20, background: 'var(--color-orange-200)', color: 'var(--color-orange-600)', fontSize: 11, fontWeight: 700, letterSpacing: '0.02em' }}>
                     <span className="ico" style={{ fontSize: 13 }}>auto_awesome</span> Nouveauté
                   </span>
+                : o.id === 'noota'
+                ? <><span style={{ fontWeight: 700 }}>Dès 29 €</span> <span className="small" style={{ fontSize: "10px" }}>/ utilisateur / mois</span></>
                 : <>{formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span></>
               }
             </div>

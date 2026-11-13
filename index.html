@@ -5280,26 +5280,43 @@ const INTERNAL_OPTIONS = [
     status: 'new',
   },
   {
-    id: 'noota',
-    name: 'Transcription IA des entretiens',
+    id: 'noota_pro',
+    name: 'Noota Pro',
     icon: 'subtitles',
-    desc: 'Enregistrement, transcription et résumé IA de vos entretiens visio, synchronisés dans la fiche candidat Flatchr.',
-    price: null,
-    priceUnit: '',
+    desc: 'Transcription IA pour les petites équipes. 1 000 min/mois, équipe max 10, Emails IA, Téléphonie d\'entreprise.',
+    price: 348,
+    priceUnit: '/ utilisateur / an',
     recurring: true,
-    longDesc: 'Noota se branche sur Google Meet, Teams ou Zoom : enregistre, transcrit, résume vos entretiens et identifie les compétences détectées. En tant que revendeur officiel, Flatchr propose Noota avec intégration native directement dans la fiche candidat.',
+    longDesc: 'Noota se branche sur Google Meet, Teams ou Zoom : enregistre, transcrit, résume vos entretiens et identifie les compétences détectées. Le plan Pro est idéal pour les petites équipes avec 1 000 minutes d\'enregistrement par mois. Intégration native dans la fiche candidat Flatchr.',
     benefits: [
-      'Transcription automatique multilingue',
-      'Résumé IA des points clés',
-      'Détection des soft skills',
-      'Synchro Google Meet / Teams / Zoom',
-      'Fiche candidat enrichie automatiquement',
+      '1 000 minutes d\'enregistrement par mois',
+      'Espace d\'équipe (max 10 utilisateurs)',
+      'Emails IA',
+      'Téléphonie d\'entreprise',
+      'Intégrations illimitées',
+      'Fiche candidat enrichie automatiquement dans Flatchr',
     ],
-    pricingDetails: [
-      { label: 'Plan Pro', price: '29 €', unit: '/ utilisateur / mois', detail: 'Pour les petites équipes · 1 000 min/mois · Équipe max 10 · Emails IA · Téléphonie d\'entreprise · Intégrations illimitées' },
-      { label: 'Plan Business', price: '49 €', unit: '/ utilisateur / mois', detail: 'Pour les entreprises en croissance · Enregistrement illimité · Équipe illimitée · Fonctionnalités IA illimitées · Zapier & API · Analyses' },
+    conditions: 'Revendeur officiel Noota. Facturation via Flatchr. 29 € HT / utilisateur / mois.',
+    status: 'new',
+  },
+  {
+    id: 'noota_business',
+    name: 'Noota Business',
+    icon: 'subtitles',
+    desc: 'Transcription IA pour les entreprises en croissance. Enregistrement illimité, IA illimitée, Zapier & API.',
+    price: 588,
+    priceUnit: '/ utilisateur / an',
+    recurring: true,
+    longDesc: 'Noota se branche sur Google Meet, Teams ou Zoom : enregistre, transcrit, résume vos entretiens et identifie les compétences détectées. Le plan Business est conçu pour les équipes en croissance avec enregistrement illimité et toutes les fonctionnalités IA. Intégration native dans la fiche candidat Flatchr.',
+    benefits: [
+      'Enregistrement illimité',
+      'Espace d\'équipe illimité',
+      'Fonctionnalités IA illimitées',
+      'Zapier & API',
+      'Analyses avancées',
+      'Fiche candidat enrichie automatiquement dans Flatchr',
     ],
-    conditions: 'Revendeur officiel Noota. Facturation via Flatchr. Tarifs HT par utilisateur par mois.',
+    conditions: 'Revendeur officiel Noota. Facturation via Flatchr. 49 € HT / utilisateur / mois.',
     status: 'new',
   },
   {
@@ -6482,8 +6499,6 @@ const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty, si
                 ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 20, background: 'var(--color-orange-200)', color: 'var(--color-orange-600)', fontSize: 11, fontWeight: 700, letterSpacing: '0.02em' }}>
                     <span className="ico" style={{ fontSize: 13 }}>auto_awesome</span> Nouveauté
                   </span>
-                : o.id === 'noota'
-                ? <><span style={{ fontWeight: 700 }}>Dès 29 €</span> <span className="small" style={{ fontSize: "10px" }}>/ utilisateur / mois</span></>
                 : <>{formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span></>
               }
             </div>

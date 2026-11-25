@@ -1225,7 +1225,7 @@ body { background: var(--bg-app); color: var(--fg-primary); }
 /* ── Site Carrière hero banner ─────────────────────────────── */
 .site-hero-banner {
   background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-500) 50%, var(--color-primary-400) 100%);
-  border-radius: var(--r-12);
+  border-radius: var(--r-8);
   padding: 24px 28px;
   margin-bottom: 20px;
   display: flex; align-items: center; gap: 20px;
@@ -5270,11 +5270,10 @@ const INTERNAL_OPTIONS = [
     longDesc: 'Une session d\'1h en présentiel dédiée à vos managers opérationnels : prise en main de l\'outil, lecture des candidatures, intégration au processus de décision, suivi des KPIs.',
     benefits: [
       'Session 1h en présentiel sur site',
-      'Jusqu\'à 5 participants',
       'Support de formation personnalisé',
       'Cas pratiques basés sur vos offres',
     ],
-    conditions: 'Frais de déplacement en sus. Au-delà de 5 participants, une 2ème session est nécessaire.',
+    conditions: 'Frais de déplacement en sus.',
   },
   {
     id: 'formation-visio',
@@ -5287,12 +5286,11 @@ const INTERNAL_OPTIONS = [
     longDesc: 'Une session d\'1h en visioconférence dédiée à vos managers opérationnels : prise en main de l\'outil, lecture des candidatures, intégration au processus de décision, suivi des KPIs.',
     benefits: [
       'Session 1h en visioconférence',
-      'Jusqu\'à 5 participants',
       'Support de formation personnalisé',
       'Cas pratiques basés sur vos offres',
       'Replay vidéo inclus',
     ],
-    conditions: 'Replay vidéo inclus. Au-delà de 5 participants, une 2ème session est nécessaire.',
+    conditions: 'Replay vidéo inclus.',
   },
   {
     id: 'atelier',

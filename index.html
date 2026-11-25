@@ -1222,6 +1222,58 @@ body { background: var(--bg-app); color: var(--fg-primary); }
 .option-card .option-stepper button { background: none; border: none; cursor: pointer; padding: 3px; color: var(--color-primary-600); display: flex; border-radius: 4px; }
 .option-card .option-stepper button:hover { background: var(--color-primary-200); }
 .option-card .option-stepper button .ico { font-size: 16px; }
+/* ── Site Carrière hero banner ─────────────────────────────── */
+.site-hero-banner {
+  background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-500) 50%, var(--color-primary-400) 100%);
+  border-radius: var(--r-12);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 20px;
+  position: relative; overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 20px hsla(188, 99%, 30%, 0.3);
+  transition: box-shadow .2s, transform .15s;
+}
+.site-hero-banner:hover { box-shadow: 0 6px 28px hsla(188, 99%, 30%, 0.42); transform: translateY(-1px); }
+.site-hero-banner::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 75% 50%, rgba(255,255,255,.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+.site-hero-banner.selected { box-shadow: 0 0 0 3px #fff, 0 4px 20px hsla(188, 99%, 30%, 0.4); }
+.site-hero-banner .hero-ico { font-size: 44px; color: rgba(255,255,255,.8); flex-shrink: 0; }
+.site-hero-banner .hero-body { flex: 1; min-width: 0; }
+.site-hero-banner .hero-new {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--color-orange-400, #fb923c);
+  background: rgba(251,146,60,.18); border: 1px solid rgba(251,146,60,.35);
+  padding: 2px 8px; border-radius: 20px; margin-bottom: 6px;
+}
+.site-hero-banner h4 {
+  font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 4px;
+  font-family: var(--font-display, system-ui);
+}
+.site-hero-banner .hero-desc { font-size: 12px; color: rgba(255,255,255,.75); margin: 0; line-height: 1.5; }
+.site-hero-banner .hero-right { text-align: right; flex-shrink: 0; }
+.site-hero-banner .hero-price-amount {
+  font-size: 24px; font-weight: 700; color: #fff; line-height: 1;
+  font-family: var(--font-display, system-ui);
+}
+.site-hero-banner .hero-price-unit { font-size: 11px; color: rgba(255,255,255,.6); display: block; margin-top: 2px; }
+.site-hero-banner .hero-incl { font-size: 10px; color: rgba(255,255,255,.45); margin-top: 10px; }
+.site-hero-banner .hero-toggle {
+  margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;
+}
+.site-hero-banner .btn-hero {
+  background: rgba(255,255,255,.18); border: 1.5px solid rgba(255,255,255,.3);
+  color: #fff; padding: 6px 14px; border-radius: 8px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: background .15s;
+}
+.site-hero-banner .btn-hero:hover { background: rgba(255,255,255,.28); }
+.site-hero-banner .btn-hero.retirer { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.2); color: rgba(255,255,255,.75); }
 .option-card .option-stepper > span { font-size: 14px; font-weight: 700; min-width: 22px; text-align: center; color: var(--color-primary-700); }
 .option-card .badge-corner {
   position: absolute;
@@ -5000,7 +5052,7 @@ const SOCLE_FEATURES = [
   { ico: 'view_kanban',    label: 'Kanban & gestion des tâches',      details: 'Vue kanban par pipeline, drag & drop des candidats entre étapes, création de tâches avec rappels et assignation aux membres de l\'équipe.' },
   { ico: 'badge',          label: 'Gestion des rôles',                details: 'Définissez des profils d\'accès personnalisés : administrateur, recruteur, manager, lecture seule. Droits affinés par offre, vivier ou entité.' },
   { ico: 'chat',           label: 'Messagerie & messages auto',       details: 'Messagerie intégrée avec les candidats, modèles d\'emails personnalisables, envoi automatique à chaque changement d\'étape, historique centralisé.' },
-  { ico: 'language',       label: 'Site Carrière Premium',            details: 'Site carrière hébergé et personnalisé aux couleurs de votre marque employeur. Optimisé SEO, responsive, avec moteur de recherche d\'offres intégré.' },
+  { ico: 'language',       label: 'Page Carrière',                    details: 'Page carrière hébergée et personnalisée aux couleurs de votre marque employeur. Optimisée SEO, responsive, avec moteur de recherche d\'offres intégré.' },
   { ico: 'hub',            label: 'Multi-diffusion',                  details: 'Publiez vos offres simultanément sur +180 jobboards (Indeed, LinkedIn, APEC, France Travail…) depuis un seul écran, avec suivi des candidatures par source.' },
   { ico: 'event',          label: 'Prise de RDV intégrée',           details: 'Proposez des créneaux directement depuis Flatchr, synchronisés avec Google Calendar et Outlook. Le candidat choisit son créneau sans aller-retour mail.' },
   { ico: 'search',         label: 'Recherche booléenne par prompt',   details: 'Interrogez votre CV-thèque en langage naturel (ex. : "développeur React 3 ans Paris"). L\'IA construit la requête booléenne et remonte les profils pertinents.' },
@@ -6480,8 +6532,45 @@ const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty, si
     title="Prestations Flatchr"
     sub="Configurations sur-mesure, formations et services techniques réalisés par nos équipes pour accélérer votre mise en route et votre ROI." />
 
+    {/* ── Site Carrière hero banner ─────────────────────────── */}
+    {(() => {
+      const siteOpt = INTERNAL_OPTIONS.find(o => o.id === 'site');
+      const isSelected = selected.includes('site');
+      const heroPrice = siteTier === 'essentiel'
+        ? <><span className="hero-price-amount">Inclus</span><span className="hero-price-unit">contrat ≥ 5 000 €/an</span></>
+        : siteTier === 'accompagne'
+        ? <><span className="hero-price-amount">500 €</span><span className="hero-price-unit">/ atelier CSM</span></>
+        : siteTier === 'sur_mesure'
+        ? <><span className="hero-price-amount">Sur devis</span></>
+        : <><span className="hero-price-amount">1 800 €</span><span className="hero-price-unit">/ an</span></>;
+      return (
+        <div
+          className={'site-hero-banner' + (isSelected ? ' selected' : '')}
+          onClick={() => onOpen(siteOpt, 'internal')}>
+          {isSelected && <div className="check-mark"><span className="ico">check</span></div>}
+          <span className="ico hero-ico">language</span>
+          <div className="hero-body">
+            <div className="hero-new"><span className="ico" style={{ fontSize: 11 }}>auto_awesome</span> Nouveauté</div>
+            <h4>{siteOpt.name}</h4>
+            <p className="hero-desc">{siteOpt.desc}</p>
+          </div>
+          <div className="hero-right">
+            {heroPrice}
+            <div className="hero-toggle">
+              <button
+                className={'btn-hero' + (isSelected ? ' retirer' : '')}
+                onClick={(e) => { e.stopPropagation(); isSelected ? onToggle('site') : onToggle('site'); }}>
+                <span className="ico" style={{ fontSize: 14 }}>{isSelected ? 'remove_circle_outline' : 'add_circle_outline'}</span>
+                {isSelected ? 'Retirer' : 'Ajouter'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    })()}
+
     <div className="options-grid">
-      {INTERNAL_OPTIONS.map((o) => {
+      {INTERNAL_OPTIONS.filter(o => o.id !== 'site').map((o) => {
       const qty = (internalQty && internalQty[o.id]) || 1;
       const isSelected = selected.includes(o.id);
       return <div
@@ -6495,12 +6584,7 @@ const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty, si
           <p className="desc">{o.desc}</p>
           <div className="option-footer">
             <div className="option-price" style={{ fontSize: "12px" }}>
-              {o.id === 'site'
-                ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 20, background: 'var(--color-orange-200)', color: 'var(--color-orange-600)', fontSize: 11, fontWeight: 700, letterSpacing: '0.02em' }}>
-                    <span className="ico" style={{ fontSize: 13 }}>auto_awesome</span> Nouveauté
-                  </span>
-                : <>{formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span></>
-              }
+              <>{formatEUR(o.price)} <span className="small" style={{ fontSize: "10px" }}>{o.priceUnit}</span></>
             </div>
             {o.quantifiable && isSelected ? (
               <div className="option-stepper" onClick={e => e.stopPropagation()}>

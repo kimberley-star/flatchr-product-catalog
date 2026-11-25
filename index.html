@@ -5313,11 +5313,11 @@ const INTERNAL_OPTIONS = [
     id: 'site',
     name: 'Site Carrière personnalisable',
     icon: 'language',
-    desc: 'Personnalisation complète de votre marque employeur sur un site carrière multi-page.',
+    desc: 'Un design de site carrière moderne, nativement connecté à l\'ATS Flatchr, personnalisable aux couleurs de votre marque.',
     price: 1800,
     priceUnit: '/ an',
     recurring: true,
-    longDesc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration en toute autonomie, aucun accompagnement CSM.',
+    longDesc: 'Personnalisez votre marque employeur sur un design de site carrière moderne, nativement connecté à l\'ATS Flatchr. Couleurs, logo, contenus, photos — configurez en toute autonomie, sans intervention technique ni accompagnement CSM.',
     benefits: [
       'Design personnalisable avec vos couleurs et votre marque',
       'Multi-page illimité',
@@ -6962,7 +6962,7 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onS
                       <h4>Tarif & conditions</h4>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {[
-                          { id: 'essentiel', label: 'Autonome', price: 'Inclus', sub: '', desc: 'Personnalisation aux couleurs et à la marque de votre entreprise sur un template Flatchr. Configuration en toute autonomie, aucun accompagnement CSM.', note: '1 800 €/an pour les contrats annuels de moins de 5 000 €.', badge: null },
+                          { id: 'essentiel', label: 'Autonome', price: 'Inclus', sub: '', desc: 'Un design de site carrière moderne connecté à l\'ATS Flatchr, personnalisable aux couleurs de votre marque. Configuration en toute autonomie.', note: '1 800 €/an pour les contrats annuels de moins de 5 000 €.', badge: null },
                           { id: 'sur_mesure', label: 'Accompagnement CSM', price: 'Sur devis', sub: '', desc: 'Vous pouvez sortir du template et créer le site carrière de vos rêves, un expert technique vous accompagne spécifiquement pour rendre votre site responsive et respecter toutes les bonnes pratiques de référencement.', badge: null },
                         ].map((tier) => (
                           <div key={tier.id} onClick={() => onSiteTierChange(tier.id)} style={{

@@ -6552,12 +6552,14 @@ const InternalSection = ({ selected, onToggle, onOpen, internalQty, onSetQty, si
           <div className="hero-right">
             {heroPrice}
             <div className="hero-toggle">
-              <button
-                className={'btn-hero' + (isSelected ? ' retirer' : '')}
-                onClick={(e) => { e.stopPropagation(); isSelected ? onToggle('site') : onToggle('site'); }}>
-                <span className="ico" style={{ fontSize: 14 }}>{isSelected ? 'remove_circle_outline' : 'add_circle_outline'}</span>
-                {isSelected ? 'Retirer' : 'Ajouter'}
-              </button>
+              {isSelected
+                ? <button className="btn-hero retirer" onClick={(e) => { e.stopPropagation(); onToggle('site'); }}>
+                    <span className="ico" style={{ fontSize: 14 }}>remove_circle_outline</span> Retirer
+                  </button>
+                : <button className="btn-hero" onClick={(e) => { e.stopPropagation(); onOpen(siteOpt, 'internal'); }}>
+                    <span className="ico" style={{ fontSize: 14 }}>tune</span> Choisir un tarif
+                  </button>
+              }
             </div>
           </div>
         </div>
@@ -7173,15 +7175,31 @@ const Drawer = ({ content, onClose, onToggleSelection, isSelected, siteTier, onS
               data.price === null ? 'Sur devis' : <>{formatEUR(data.price)} <span style={{ fontSize: 13, color: 'var(--color-neutral-800)', fontWeight: 500 }}>{data.priceUnit}</span></>}
               </div>
             </div>
-            {data.price !== null &&
-          <button
-            className={'btn ' + (isSelected ? 'btn-tertiary' : 'btn-primary')}
-            onClick={() => onToggleSelection()}>
-            
+            {data.id === 'site' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
+                {!isSelected && !siteTier && (
+                  <p style={{ margin: 0, fontSize: 11, color: 'var(--color-neutral-600)', textAlign: 'center' }}>
+                    Sélectionnez un tarif ci-dessus pour ajouter au devis.
+                  </p>
+                )}
+                <button
+                  className={'btn ' + (isSelected ? 'btn-tertiary' : 'btn-primary')}
+                  disabled={!isSelected && !siteTier}
+                  style={!isSelected && !siteTier ? { opacity: 0.45, cursor: 'not-allowed' } : {}}
+                  onClick={() => { if (isSelected || siteTier) onToggleSelection(); }}>
+                  <span className="ico">{isSelected ? 'remove_circle_outline' : 'add_circle'}</span>
+                  {isSelected ? 'Retirer du devis' : 'Ajouter au devis'}
+                </button>
+              </div>
+            ) : (
+              data.price !== null &&
+              <button
+                className={'btn ' + (isSelected ? 'btn-tertiary' : 'btn-primary')}
+                onClick={() => onToggleSelection()}>
                 <span className="ico">{isSelected ? 'remove_circle_outline' : 'add_circle'}</span>
                 {isSelected ? 'Retirer du devis' : content.type === 'external' ? 'Ajouter à mon devis' : 'Ajouter au devis'}
               </button>
-          }
+            )}
           </div>
         }
         {(isSocle || isCSM) &&
